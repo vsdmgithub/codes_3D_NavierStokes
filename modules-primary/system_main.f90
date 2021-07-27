@@ -216,7 +216,6 @@ MODULE system_main
 
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
-print*,time_now,energy, diss_rate_viscous
 
     CALL forcing_spectrum
     ! REF-> <<< system_basicfunctions >>>
@@ -258,7 +257,7 @@ print*,time_now,energy, diss_rate_viscous
       CALL perform_debug
       ! REF-> <<< system_basicfunctions >>>
 
-      ! CALL print_running_status
+      CALL print_running_status
       ! REF-> <<< system_basicoutput >>>
 
     END IF
@@ -281,6 +280,13 @@ print*,time_now,energy, diss_rate_viscous
 
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
+
+    CALL allocate_dissipation_field
+    ! REF-> <<< system_advvariables >>>
+    CALL compute_dissipation_field
+    ! REF-> <<< system_advfunctions >>>
+    CALL deallocate_dissipation_field
+    ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>

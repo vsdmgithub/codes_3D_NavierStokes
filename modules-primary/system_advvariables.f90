@@ -42,6 +42,7 @@ MODULE system_advvariables
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE::dummy_ar
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::dissipation_field
 
   CONTAINS
 
@@ -58,6 +59,38 @@ MODULE system_advvariables
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE( dummy_ar(10) )
+
+  END
+
+  SUBROUTINE allocate_dissipation_field
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to allocate dissipation field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ALLOCATE(dissipation_field(0:N-1,0:N-1,0:N-1))
+
+  END
+
+  SUBROUTINE deallocate_dissipation_field
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to deallocate dissipation field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE(dissipation_field)
 
   END
 

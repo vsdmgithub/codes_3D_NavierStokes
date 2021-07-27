@@ -255,13 +255,14 @@ MODULE system_basicfunctions
     DOUBLE PRECISION             ::toss, threshold, energy_diff
     DOUBLE PRECISION,DIMENSION(3)::ph
     DOUBLE PRECISION,DIMENSION(1)::g_toss
+    DOUBLE PRECISION,DIMENSION(3)::F_toss
     DOUBLE PRECISION             ::F_k_mod,k_ratio
     DOUBLE COMPLEX,DIMENSION(3)  ::F_k
     INTEGER(KIND=4)::fmodes
 
     CALL RANDOM_NUMBER( toss )
 
-    energy_diff    = ( energy - energy_initial ) / energy_initial
+    energy_diff    = ( energy - energy_initial ) / ( 0.5 * energy_initial )
     threshold      = DEXP( energy_diff )
     forcing_status = 0
     fmodes         = 0
@@ -282,21 +283,15 @@ MODULE system_basicfunctions
       DO i_z = -k_F, k_F
       IF ( k_2( i_x, i_y, i_z ) .LT. k_F_2 ) THEN
 
-        CALL RANDOM_NUMBER(phi)
-        CALL RANDOM_NUMBER(theta)
         CALL RANDOM_NUMBER(ph)
 
-        phi     = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
-        theta   = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
         ph      = two_pi * ph ! Phases of \hat{u}_k components
 
-        k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+        F_toss  = normal_dist( 3, zero, one )
 
-        F_k_mod = DEXP( - hf * ( k_ratio ** two ) )
-
-        F_k(1)  = F_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
+        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
+        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
+        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
         ! 3 COMPLEX values for spectral velocity
 
         F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
@@ -311,7 +306,6 @@ MODULE system_basicfunctions
                                                F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
 
         ! ----------------------------------------------------------------------------------------
-        fmodes=fmodes+1
       END IF
       END DO
       END DO
@@ -322,21 +316,15 @@ MODULE system_basicfunctions
       DO i_z = -k_F, -1
       IF ( k_2( i_x, i_y, i_z ) .LT. k_F_2 ) THEN
 
-        CALL RANDOM_NUMBER(phi)
-        CALL RANDOM_NUMBER(theta)
         CALL RANDOM_NUMBER(ph)
 
-        phi     = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
-        theta   = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
         ph      = two_pi * ph ! Phases of \hat{u}_k components
 
-        k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+        F_toss  = normal_dist( 3, zero, one )
 
-        F_k_mod = DEXP( - hf * ( k_ratio ** two ) )
-
-        F_k(1)  = F_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
+        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
+        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
+        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
         ! 3 COMPLEX values for spectral velocity
 
         F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
@@ -355,7 +343,6 @@ MODULE system_basicfunctions
                                                F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
 
         ! ----------------------------------------------------------------------------------------
-        fmodes=fmodes+1
 
       END IF
       END DO
@@ -364,21 +351,15 @@ MODULE system_basicfunctions
       i_z    = 0
       DO i_y = 1, k_F
 
-        CALL RANDOM_NUMBER(phi)
-        CALL RANDOM_NUMBER(theta)
         CALL RANDOM_NUMBER(ph)
 
-        phi     = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
-        theta   = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
         ph      = two_pi * ph ! Phases of \hat{u}_k components
 
-        k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+        F_toss  = normal_dist( 3, zero, one )
 
-        F_k_mod = DEXP( - hf * ( k_ratio ** two ) )
-
-        F_k(1)  = F_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
+        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
+        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
+        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
         ! 3 COMPLEX values for spectral velocity
 
         F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
@@ -396,8 +377,6 @@ MODULE system_basicfunctions
                                                F_k_y( i_x, i_y, i_z ) * DCONJG( v_y( i_x, i_y, i_z) ) + &
                                                F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
 
-
-                                               fmodes=fmodes+1
         ! ----------------------------------------------------------------------------------------
       END DO
 
@@ -409,11 +388,11 @@ MODULE system_basicfunctions
       forced_energy = forced_energy * two
       ! For the conjugate modes
 
-      g_toss       = normal_dist( 1, 1.0D0, 0.1D0 ) * ( one - threshold )**qtr
-      force_factor = g_toss(1) * diss_rate * diss_rate_viscous / forced_energy
+      g_toss       = normal_dist( 1, 1.0D0, 0.5D0 ) * ( one - threshold )**two
+      force_factor = g_toss(1) * diss_rate_viscous / forced_energy
       ! Recalibration of forcing according to dissipation with a noise
-      print*,'forced',threshold,g_toss(1)
-      ! print*,fmodes
+
+! print*,'forced',energy,g_toss(1)
       F_k_x         = force_factor * dt * F_k_x * diss_Ifactor
       F_k_y         = force_factor * dt * F_k_y * diss_Ifactor
       F_k_z         = force_factor * dt * F_k_z * diss_Ifactor
@@ -421,6 +400,9 @@ MODULE system_basicfunctions
 
     END IF
 
+    ! F_k(1)  = F_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
+    ! F_k(2)  = F_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
+    ! F_k(3)  = F_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
   END
 
   SUBROUTINE compute_energy
