@@ -217,7 +217,7 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL forcing_spectrum
+    ! CALL forcing_spectrum
     ! REF-> <<< system_basicfunctions >>>
 
     CALL write_temporal_data

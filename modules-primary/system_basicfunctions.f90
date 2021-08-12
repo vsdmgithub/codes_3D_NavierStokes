@@ -400,9 +400,6 @@ MODULE system_basicfunctions
 
     END IF
 
-    ! F_k(1)  = F_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-    ! F_k(2)  = F_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-    ! F_k(3)  = F_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
   END
 
   SUBROUTINE compute_energy

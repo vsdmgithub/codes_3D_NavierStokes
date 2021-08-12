@@ -234,13 +234,13 @@ MODULE system_basicvariables
     ! Maximum shell no it can get.
 
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    ! F L U I D D A T A
+    ! F L U I D      D A T A
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     norm_factor     = one
     ! Normalization factor for energy - later changed so that initial energy is obtained.
 
-    energy_initial  = one
+    energy_initial  = two
     energy_old      = energy_initial
     ! Initial energy of the system
 
@@ -250,7 +250,7 @@ MODULE system_basicvariables
     time_grid       = dx / U_rms
     ! Time scale for particle to cross a grid
 
-    CFL_min         = 10
+    CFL_min         = 5
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 

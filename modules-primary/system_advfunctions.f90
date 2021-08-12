@@ -63,9 +63,10 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
 
-    CALL fft_c2r( -k_2 * v_x, -k_2 * v_y, -k_2 * v_z, N, Nh, w_ux, w_uy, w_uz )
+    ! CALL fft_c2r( -k_2 * v_x, -k_2 * v_y, -k_2 * v_z, N, Nh, w_ux, w_uy, w_uz )
 
-    dissipation_field = w_ux * u_x + w_uy * u_y + w_uz * u_z
+    ! dissipation_field = w_ux * u_x + w_uy * u_y + w_uz * u_z
+    dissipation_field = w_ux**two + w_uy**two + w_uz**two
 
     CALL write_dissipation_field
     ! REF-> <<< system_advoutput >>>
