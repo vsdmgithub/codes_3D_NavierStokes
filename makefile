@@ -4,10 +4,12 @@
 cc=gfortran
 
 # LIBRARY LOCATION
-lb_lc= -I/home/sugan/fftw/include
+#lb_lc= -I/home/sugan/fftw/include
+lb_lc= -I/home/coco/fftw/include
 
 # LIBRARY FILE
-lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
+lb_fftw=-L/home/coco/fftw/lib -lfftw3 -lm
+#lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
 
 # PROGRAM
 program=NSE_code.f90
@@ -20,6 +22,7 @@ vtk_mod              =modules-secondary/system_VTK.f90
 constants_mod        =modules-secondary/system_constants.f90
 auxilaries_mod       =modules-secondary/system_auxilaries.f90
 basicvariables_mod   =modules-primary/system_basicvariables.f90
+basicdeclar_mod      =modules-primary/system_basicdeclaration.f90
 advvariables_mod     =modules-primary/system_advvariables.f90
 initialcondition_mod =modules-primary/system_initialcondition.f90
 basicfunctions_mod   =modules-primary/system_basicfunctions.f90
@@ -42,6 +45,7 @@ obj=system_timer.o\
 	system_advvariables.o\
 	system_initialcondition.o\
 	system_basicfunctions.o\
+	system_basicdeclaration.o\
 	system_advfunctions.o\
 	system_solver.o\
 	system_basicoutput.o\
@@ -69,6 +73,7 @@ ex:$(ob)
 	$(cc) -c $(constants_mod)
 	$(cc) -c $(auxilaries_mod)
 	$(cc) -c $(basicvariables_mod)
+	$(cc) -c $(basicdeclar_mod)
 	$(cc) -c $(initialcondition_mod)
 	$(cc) -c $(basicoutput_mod)
 	$(cc) -c $(basicfunctions_mod)

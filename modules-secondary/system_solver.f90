@@ -137,208 +137,12 @@ MODULE system_solver
 		CALL time_increment_RK4()
 		! Final increment for 'v(k)'
 
-		IF ( forcing_status .EQ. 1 ) THEN
-			v_x      = ( v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six ) * diss_Ifactor + F_k_x
-			v_y      = ( v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six ) * diss_Ifactor + F_k_y
-			v_z      = ( v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six ) * diss_Ifactor + F_k_z
-		ELSE
-			v_x      = ( v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six ) * diss_Ifactor
-			v_y      = ( v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six ) * diss_Ifactor
-			v_z      = ( v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six ) * diss_Ifactor
-		END IF
+		v_x      = ( v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six ) * integrating_factor
+		v_y      = ( v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six ) * integrating_factor
+		v_z      = ( v_z_temp + ( dv1_z + two * dv2_z + two * dv3_z + dv4_z ) / six ) * integrating_factor
 
 		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
 		! Real Velocity
-
-	END
-
-	SUBROUTINE allocate_solver_AB4
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to allocate arrays for AB4 algorithm
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-		IMPLICIT NONE
-		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		!  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
-		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		ALLOCATE(v_x_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_y_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_z_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-
-	END
-
-	SUBROUTINE solver_AB4_algorithm
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to USE AB4 algorithm to move one step forward in time for the matrix 'v(k,t)-> v(k,t+1)'
-	! Alg: - Adam Bashforth 4th Order algorithm
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-		IMPLICIT NONE
-
-		IF ( t_step .EQ. 0 ) THEN
-
-			! Using initial condition to get -3 step value
-			CALL time_derivative_AB()
-			v_x_dot_m3 = v_x_dot
-			v_y_dot_m3 = v_y_dot
-			v_z_dot_m3 = v_z_dot
-
-			CALL allocate_solver_RK4
-			! Allocating RK4 for first 3 steps
-
-			CALL solver_RK4_algorithm
-
-		ELSE IF ( t_step .EQ. 1 ) THEN
-
-			! Filling up for -2 step value
-			CALL time_derivative_AB()
-			v_x_dot_m2 = v_x_dot
-			v_y_dot_m2 = v_y_dot
-			v_z_dot_m2 = v_z_dot
-
-			CALL solver_RK4_algorithm
-
-		ELSE IF ( t_step .EQ. 2 ) THEN
-
-			! Filling up for -1 step value
-			CALL time_derivative_AB()
-			v_x_dot_m1 = v_x_dot
-			v_y_dot_m1 = v_y_dot
-			v_z_dot_m1 = v_z_dot
-
-			CALL solver_RK4_algorithm
-
-			CALL deallocate_solver_RK4
-			! No need for RK4 anymore
-
-		ELSE
-
-			CALL time_derivative_AB()
-
-			v_x_pred = ( v_x + dt * ( - 9.0D0 * v_x_dot_m3 + 37.0D0 * v_x_dot_m2 - 59.0D0 * v_x_dot_m1 + &
-			 													 55.0D0 * v_x_dot ) / 24.0D0 ) * diss_Ifactor
-			v_y_pred = ( v_y + dt * ( - 9.0D0 * v_y_dot_m3 + 37.0D0 * v_y_dot_m2 - 59.0D0 * v_y_dot_m1 + &
-			 													 55.0D0 * v_y_dot ) / 24.0D0 ) * diss_Ifactor
-			v_z_pred = ( v_z + dt * ( - 9.0D0 * v_z_dot_m3 + 37.0D0 * v_z_dot_m2 - 59.0D0 * v_z_dot_m1 + &
-			 													 55.0D0 * v_z_dot ) / 24.0D0 ) * diss_Ifactor
-
-			CALL time_derivative_AB_pred()
-
-			v_x      = ( v_x + dt * ( v_x_dot_m2 - 5.0D0 * v_x_dot_m1 + 19.0D0 * v_x_dot + &
-			 								  9.0D0 * v_x_dot_m3 ) / 24.0D0 ) * diss_Ifactor
-			v_y      = ( v_y + dt * ( v_y_dot_m2 - 5.0D0 * v_y_dot_m1 + 19.0D0 * v_y_dot + &
-			 								  9.0D0 * v_y_dot_m3 ) / 24.0D0 ) * diss_Ifactor
-			v_z      = ( v_z + dt * ( v_z_dot_m2 - 5.0D0 * v_z_dot_m1 + 19.0D0 * v_z_dot + &
-			 								  9.0D0 * v_z_dot_m3 ) / 24.0D0 ) * diss_Ifactor
-			! Predicted 'v_dot' is stored in 'v_dot_m3' - to save space :)
-
-			! Shifting the known velocities for next step
-			v_x_dot_m3 = v_x_dot_m2
-			v_x_dot_m2 = v_x_dot_m1
-			v_x_dot_m1 = v_x_dot
-
-			v_y_dot_m3 = v_y_dot_m2
-			v_y_dot_m2 = v_y_dot_m1
-			v_y_dot_m1 = v_y_dot
-
-			v_z_dot_m3 = v_z_dot_m2
-			v_z_dot_m2 = v_z_dot_m1
-			v_z_dot_m1 = v_z_dot
-
-			CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
-			! Real Velocity
-
-		END IF
-
-	END
-
-	SUBROUTINE time_derivative_AB()
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to get the time derivative matrix for matrix 'v(k)'
-	! This is the Navier-Stokes EQUATION implemented for numerical computation
-	! spectral space.
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		IMPLICIT NONE
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   C  R  O  S  S    P  R  O  D  U  C  T    ( U  X  W  )
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-		w_vx = i * ( k_y * v_z - k_z * v_y )
-    w_vy = i * ( k_z * v_x - k_x * v_z )
-    w_vz = i * ( k_x * v_y - k_y * v_x )
-    ! Spectral Vorticity
-
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
-    ! Real Vorticity
-
-		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
-
-		uXw_x = u_y * w_uz - u_z * w_uy
-		uXw_y = u_z * w_ux - u_x * w_uz
-		uXw_z = u_x * w_uy - u_y * w_ux
-		! Cross product between velocity and vorticity
-
-		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
-		! FFT to get spectral cross product
-
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   3   D  -   E   U   L   E   R           E   Q   N.
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		! Get the advection term 'u\cdot \Nabla u' in spectral space and project it with projection matrix and finally truncate it.
-
-		v_x_dot = truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + F_k_x
-		v_y_dot = truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + F_k_y
-		v_z_dot = truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + F_k_z
-
-	END
-
-	SUBROUTINE time_derivative_AB_pred()
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to get the time derivative matrix for matrix 'v(k)'
-	! This is the Navier-Stokes EQUATION implemented for numerical computation
-	! spectral space.
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		IMPLICIT NONE
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   C  R  O  S  S    P  R  O  D  U  C  T    ( U  X  W  )
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
- 		w_vx = i * ( k_y * v_z_pred - k_z * v_y_pred )
-    w_vy = i * ( k_z * v_x_pred - k_x * v_z_pred )
-    w_vz = i * ( k_x * v_y_pred - k_y * v_x_pred )
-    ! Spectral Vorticity
-
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
-    ! Real Vorticity
-
-		CALL fft_c2r( v_x_pred, v_y_pred, v_z_pred, N, Nh, u_x, u_y, u_z )
-
-		uXw_x = u_y * w_uz - u_z * w_uy
-		uXw_y = u_z * w_ux - u_x * w_uz
-		uXw_z = u_x * w_uy - u_y * w_ux
-		! Cross product between velocity and vorticity
-
-		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
-		! FFT to get spectral cross product
-
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   3   D  -   E   U   L   E   R           E   Q   N.
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		! Get the advection term 'u\cdot \Nabla u' in spectral space and project it with projection matrix and finally truncate it.
-
-		v_x_dot_m3 = truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + F_k_x
-		v_y_dot_m3 = truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + F_k_y
-		v_z_dot_m3 = truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + F_k_z
 
 	END
 
@@ -457,6 +261,196 @@ MODULE system_solver
 		! FFT to get spectral cross product
 
   END
+
+	SUBROUTINE allocate_solver_AB4
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to allocate arrays for AB4 algorithm
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		IMPLICIT NONE
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		!  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		ALLOCATE(v_x_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE(v_x_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE(v_y_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE(v_z_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE(v_x_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+
+	END
+
+	SUBROUTINE solver_AB4_algorithm
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to USE AB4 algorithm to move one step forward in time for the matrix 'v(k,t)-> v(k,t+1)'
+	! Alg: - Adam Bashforth 4th Order algorithm
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		IMPLICIT NONE
+
+		IF ( t_step .EQ. 0 ) THEN
+
+			! Using initial condition to get -3 step value
+			CALL time_derivative_AB()
+			v_x_dot_m3 = v_x_dot
+			v_y_dot_m3 = v_y_dot
+			v_z_dot_m3 = v_z_dot
+
+			CALL allocate_solver_RK4
+			! Allocating RK4 for first 3 steps
+
+			CALL solver_RK4_algorithm
+
+		ELSE IF ( t_step .EQ. 1 ) THEN
+
+			! Filling up for -2 step value
+			CALL time_derivative_AB()
+			v_x_dot_m2 = v_x_dot
+			v_y_dot_m2 = v_y_dot
+			v_z_dot_m2 = v_z_dot
+
+			CALL solver_RK4_algorithm
+
+		ELSE IF ( t_step .EQ. 2 ) THEN
+
+			! Filling up for -1 step value
+			CALL time_derivative_AB()
+			v_x_dot_m1 = v_x_dot
+			v_y_dot_m1 = v_y_dot
+			v_z_dot_m1 = v_z_dot
+
+			CALL solver_RK4_algorithm
+
+			CALL deallocate_solver_RK4
+			! No need for RK4 anymore
+
+		ELSE
+
+			CALL time_derivative_AB()
+
+			v_x_pred = ( v_x + dt * ( - 9.0D0 * v_x_dot_m3 + 37.0D0 * v_x_dot_m2 - 59.0D0 * v_x_dot_m1 + &
+			 													 55.0D0 * v_x_dot ) / 24.0D0 ) * integrating_factor
+			v_y_pred = ( v_y + dt * ( - 9.0D0 * v_y_dot_m3 + 37.0D0 * v_y_dot_m2 - 59.0D0 * v_y_dot_m1 + &
+			 													 55.0D0 * v_y_dot ) / 24.0D0 ) * integrating_factor
+			v_z_pred = ( v_z + dt * ( - 9.0D0 * v_z_dot_m3 + 37.0D0 * v_z_dot_m2 - 59.0D0 * v_z_dot_m1 + &
+			 													 55.0D0 * v_z_dot ) / 24.0D0 ) * integrating_factor
+
+			CALL time_derivative_AB_pred()
+
+			v_x      = ( v_x + dt * ( v_x_dot_m2 - 5.0D0 * v_x_dot_m1 + 19.0D0 * v_x_dot + &
+			 								  9.0D0 * v_x_dot_m3 ) / 24.0D0 ) * integrating_factor
+			v_y      = ( v_y + dt * ( v_y_dot_m2 - 5.0D0 * v_y_dot_m1 + 19.0D0 * v_y_dot + &
+			 								  9.0D0 * v_y_dot_m3 ) / 24.0D0 ) * integrating_factor
+			v_z      = ( v_z + dt * ( v_z_dot_m2 - 5.0D0 * v_z_dot_m1 + 19.0D0 * v_z_dot + &
+			 								  9.0D0 * v_z_dot_m3 ) / 24.0D0 ) * integrating_factor
+			! Predicted 'v_dot' is stored in 'v_dot_m3' - to save space :)
+
+			! Shifting the known velocities for next step
+			v_x_dot_m3 = v_x_dot_m2
+			v_x_dot_m2 = v_x_dot_m1
+			v_x_dot_m1 = v_x_dot
+
+			v_y_dot_m3 = v_y_dot_m2
+			v_y_dot_m2 = v_y_dot_m1
+			v_y_dot_m1 = v_y_dot
+
+			v_z_dot_m3 = v_z_dot_m2
+			v_z_dot_m2 = v_z_dot_m1
+			v_z_dot_m1 = v_z_dot
+
+			CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+			! Real Velocity
+
+		END IF
+
+	END
+
+	SUBROUTINE time_derivative_AB()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   C  R  O  S  S    P  R  O  D  U  C  T    ( U  X  W  )
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+		w_vx = i * ( k_y * v_z - k_z * v_y )
+    w_vy = i * ( k_z * v_x - k_x * v_z )
+    w_vz = i * ( k_x * v_y - k_y * v_x )
+    ! Spectral Vorticity
+
+    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    ! Real Vorticity
+
+		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+
+		uXw_x = u_y * w_uz - u_z * w_uy
+		uXw_y = u_z * w_ux - u_x * w_uz
+		uXw_z = u_x * w_uy - u_y * w_ux
+		! Cross product between velocity and vorticity
+
+		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
+		! FFT to get spectral cross product
+
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the advection term 'u\cdot \Nabla u' in spectral space and project it with projection matrix and finally truncate it.
+
+		v_x_dot = truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z )
+		v_y_dot = truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z )
+		v_z_dot = truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z )
+
+	END
+
+	SUBROUTINE time_derivative_AB_pred()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   C  R  O  S  S    P  R  O  D  U  C  T    ( U  X  W  )
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+ 		w_vx = i * ( k_y * v_z_pred - k_z * v_y_pred )
+    w_vy = i * ( k_z * v_x_pred - k_x * v_z_pred )
+    w_vz = i * ( k_x * v_y_pred - k_y * v_x_pred )
+    ! Spectral Vorticity
+
+    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    ! Real Vorticity
+
+		CALL fft_c2r( v_x_pred, v_y_pred, v_z_pred, N, Nh, u_x, u_y, u_z )
+
+		uXw_x = u_y * w_uz - u_z * w_uy
+		uXw_y = u_z * w_ux - u_x * w_uz
+		uXw_z = u_x * w_uy - u_y * w_ux
+		! Cross product between velocity and vorticity
+
+		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
+		! FFT to get spectral cross product
+
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the advection term 'u\cdot \Nabla u' in spectral space and project it with projection matrix and finally truncate it.
+
+		v_x_dot_m3 = truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z )
+		v_y_dot_m3 = truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z )
+		v_z_dot_m3 = truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z )
+
+	END
 
 	SUBROUTINE deallocate_solver_RK4
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

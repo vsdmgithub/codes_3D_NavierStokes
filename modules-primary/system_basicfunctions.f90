@@ -41,7 +41,8 @@ MODULE system_basicfunctions
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS TO :
-  ! Get a normalized initial condition
+  ! Get a normalized initial condition, first gets from a list of
+  ! available ones, then checks for error and initializations.
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -60,9 +61,9 @@ MODULE system_basicfunctions
     CALL perform_debug
     ! Checks for any compressibility and NaN in data
 
-    IF ( ( NaN_count .EQ. 0 ) .AND. ( k_dot_v_error .EQ. 0) ) THEN
+    IF ( ( nan_count .EQ. 0 ) .AND. ( incomp_error .EQ. 0) ) THEN
 
-      check_status = 1
+      precheck_status = 1
 
       CALL compute_vorticity
       ! Calculates the vorticity (for the first time)
@@ -112,21 +113,21 @@ MODULE system_basicfunctions
     CALL compute_vorticity
     ! Computes vorticity in spectral space
 
-    DO i_x =    1 , k_G
-    DO i_y = - k_G, k_G
-    DO i_z = - k_G, k_G
-    IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
+    DO j_x =    1 , k_G
+    DO j_y = - k_G, k_G
+    DO j_z = - k_G, k_G
+    IF ( k_2 ( j_x, j_y, j_z ) .LT. k_G_2 ) THEN
 
-      sh_no                       = shell_no( i_x, i_y, i_z )
-      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
-      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
-                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
-                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      sh_no                       = shell_no( j_x, j_y, j_z )
+      energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
       helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )    + energy_mode
       spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
@@ -137,21 +138,21 @@ MODULE system_basicfunctions
     END DO
     END DO
 
-    i_x    =   0
-    DO i_y = - k_G, k_G
-    DO i_z = - k_G, -1
-    IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
+    j_x    =   0
+    DO j_y = - k_G, k_G
+    DO j_z = - k_G, -1
+    IF ( k_2 ( j_x, j_y, j_z ) .LT. k_G_2 ) THEN
 
-      sh_no                       = shell_no( i_x, i_y, i_z )
-      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
-      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
-                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
-                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      sh_no                       = shell_no( j_x, j_y, j_z )
+      energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
       helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )    + energy_mode
       spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
@@ -161,19 +162,19 @@ MODULE system_basicfunctions
     END DO
     END DO
 
-    i_z    = 0
-    DO i_y = 1, k_G
+    j_z    = 0
+    DO j_y = 1, k_G
 
-      sh_no                       = shell_no( i_x, i_y, i_z )
-      energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( v_z( i_x, i_y, i_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
-                                    CDABS( w_vz( i_x, i_y, i_z ) ) ** two
-      helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
-                                    v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
-                                    v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+      sh_no                       = shell_no( j_x, j_y, j_z )
+      energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
       helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )      + energy_mode
       spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
@@ -181,17 +182,17 @@ MODULE system_basicfunctions
 
     END DO
 
-    i_y = 0
-    sh_no                       = shell_no( i_x, i_y, i_z )
-    energy_mode                 = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two
-    enstrophy_mode              = CDABS( w_vx( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( w_vy( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( w_vz( i_x, i_y, i_z ) ) ** two
-    helicity_mode_complex       = v_x( i_x, i_y, i_z ) * DCONJG( w_vx( i_x, i_y, i_z ) ) + &
-                                  v_y( i_x, i_y, i_z ) * DCONJG( w_vy( i_x, i_y, i_z ) ) + &
-                                  v_z( i_x, i_y, i_z ) * DCONJG( w_vz( i_x, i_y, i_z ) )
+    j_y = 0
+    sh_no                       = shell_no( j_x, j_y, j_z )
+    energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                  CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                  CDABS( v_z( j_x, j_y, j_z ) ) ** two
+    enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+                                  CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+                                  CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+    helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+                                  v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+                                  v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
     helicity_mode               = DREAL( helicity_mode_complex )
     spectral_energy( sh_no )    = spectral_energy( sh_no )        + hf * energy_mode
     spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )     + hf * enstrophy_mode
@@ -236,169 +237,46 @@ MODULE system_basicfunctions
 
   END
 
-  SUBROUTINE forcing_spectrum
+  SUBROUTINE compute_forcing_in_modes
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
-  ! Create a template for forcing, near integral wavenumbers.
+  ! To assign values to the modes to force energy
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT  NONE
     ! _________________________
-    ! TRANSFER` VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION             ::phi,theta
-    DOUBLE PRECISION             ::toss, threshold, energy_diff
-    DOUBLE PRECISION,DIMENSION(3)::ph
-    DOUBLE PRECISION,DIMENSION(1)::g_toss
-    DOUBLE PRECISION,DIMENSION(3)::F_toss
-    DOUBLE PRECISION             ::F_k_mod,k_ratio
-    DOUBLE COMPLEX,DIMENSION(3)  ::F_k
-    INTEGER(KIND=4)::fmodes
+    INTEGER(KIND=4)::ct
+    DOUBLE PRECISION::pre_factor_forcing
 
-    CALL RANDOM_NUMBER( toss )
+    energy_forcing_modes = zero
+    LOOP_FORCING_MODES_301: DO ct = 1, tot_forced_modes
 
-    energy_diff    = ( energy - energy_initial ) / ( 0.5 * energy_initial )
-    threshold      = DEXP( energy_diff )
-    forcing_status = 0
-    fmodes         = 0
+      j_x = fkx( ct )
+      j_y = fky( ct )
+      j_z = fkz( ct )
+      KX_EQ_ZERO_CHECK: IF ( j_x .EQ. 0 ) THEN
+      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v_z( j_x, j_y, j_z ) ) ** two )
+      ELSE
+      energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      END IF KX_EQ_ZERO_CHECK
 
-    IF ( ( toss .LT. threshold ) .AND. ( energy_diff .LT. zero ) ) THEN
+    END DO LOOP_FORCING_MODES_301
 
-      forcing_status = 1
-
-      CALL init_random_seed
-      ! Randomizes seed for random numbers (in 'auxilary_functions' module )
-      ! REF-> <<< system_auxilaries >>>
-
-      forced_energy  = zero
-      ! Energy rate injected by forcing
-
-      DO i_x =    1, k_F
-      DO i_y = -k_F, k_F
-      DO i_z = -k_F, k_F
-      IF ( k_2( i_x, i_y, i_z ) .LT. k_F_2 ) THEN
-
-        CALL RANDOM_NUMBER(ph)
-
-        ph      = two_pi * ph ! Phases of \hat{u}_k components
-
-        F_toss  = normal_dist( 3, zero, one )
-
-        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
-        ! 3 COMPLEX values for spectral velocity
-
-        F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_zx( i_x, i_y, i_z ) * F_k(3)
-        F_k_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * F_k(1) + proj_yy( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_yz( i_x, i_y, i_z ) * F_k(3)
-        F_k_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * F_k(1) + proj_yz( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_zz( i_x, i_y, i_z ) * F_k(3)
-
-        forced_energy = forced_energy + DREAL( F_k_x( i_x, i_y, i_z ) * DCONJG( v_x( i_x, i_y, i_z) ) + &
-                                               F_k_y( i_x, i_y, i_z ) * DCONJG( v_y( i_x, i_y, i_z) ) + &
-                                               F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
-
-        ! ----------------------------------------------------------------------------------------
-      END IF
-      END DO
-      END DO
-      END DO
-
-      i_x    = 0
-      DO i_y = -k_F, k_F
-      DO i_z = -k_F, -1
-      IF ( k_2( i_x, i_y, i_z ) .LT. k_F_2 ) THEN
-
-        CALL RANDOM_NUMBER(ph)
-
-        ph      = two_pi * ph ! Phases of \hat{u}_k components
-
-        F_toss  = normal_dist( 3, zero, one )
-
-        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
-        ! 3 COMPLEX values for spectral velocity
-
-        F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
-                                    proj_zx( i_x, i_y, i_z ) * F_k(3)
-        F_k_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * F_k(1) + proj_yy( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_yz( i_x, i_y, i_z ) * F_k(3)
-        F_k_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * F_k(1) + proj_yz( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_zz( i_x, i_y, i_z ) * F_k(3)
-
-        F_k_x( i_x, - i_y, - i_z ) = DCONJG( F_k_x( i_x, i_y, i_z ) )
-        F_k_y( i_x, - i_y, - i_z ) = DCONJG( F_k_y( i_x, i_y, i_z ) )
-        F_k_z( i_x, - i_y, - i_z ) = DCONJG( F_k_z( i_x, i_y, i_z ) )
-
-        forced_energy = forced_energy + DREAL( F_k_x( i_x, i_y, i_z ) * DCONJG( v_x( i_x, i_y, i_z) ) + &
-                                               F_k_y( i_x, i_y, i_z ) * DCONJG( v_y( i_x, i_y, i_z) ) + &
-                                               F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
-
-        ! ----------------------------------------------------------------------------------------
-
-      END IF
-      END DO
-      END DO
-
-      i_z    = 0
-      DO i_y = 1, k_F
-
-        CALL RANDOM_NUMBER(ph)
-
-        ph      = two_pi * ph ! Phases of \hat{u}_k components
-
-        F_toss  = normal_dist( 3, zero, one )
-
-        F_k(1)  = F_toss(1) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
-        F_k(2)  = F_toss(2) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
-        F_k(3)  = F_toss(3) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
-        ! 3 COMPLEX values for spectral velocity
-
-        F_k_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * F_k(1) + proj_xy( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_zx( i_x, i_y, i_z ) * F_k(3)
-        F_k_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * F_k(1) + proj_yy( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_yz( i_x, i_y, i_z ) * F_k(3)
-        F_k_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * F_k(1) + proj_yz( i_x, i_y, i_z) * F_k(2) + &
-                                     proj_zz( i_x, i_y, i_z ) * F_k(3)
-
-        F_k_x( i_x, - i_y, - i_z ) = DCONJG( F_k_x( i_x, i_y, i_z ) )
-        F_k_y( i_x, - i_y, - i_z ) = DCONJG( F_k_y( i_x, i_y, i_z ) )
-        F_k_z( i_x, - i_y, - i_z ) = DCONJG( F_k_z( i_x, i_y, i_z ) )
-
-        forced_energy = forced_energy + DREAL( F_k_x( i_x, i_y, i_z ) * DCONJG( v_x( i_x, i_y, i_z) ) + &
-                                               F_k_y( i_x, i_y, i_z ) * DCONJG( v_y( i_x, i_y, i_z) ) + &
-                                               F_k_z( i_x, i_y, i_z ) * DCONJG( v_z( i_x, i_y, i_z) ) )
-
-        ! ----------------------------------------------------------------------------------------
-      END DO
-
-      ! Making sure, that the zero mode forcing is zero.
-      F_k_x( 0, 0, 0 )    =     zero
-      F_k_y( 0, 0, 0 )    =     zero
-      F_k_z( 0, 0, 0 )    =     zero
-
-      forced_energy = forced_energy * two
-      ! For the conjugate modes
-
-      g_toss       = normal_dist( 1, 1.0D0, 0.5D0 ) * ( one - threshold )**two
-      force_factor = g_toss(1) * diss_rate_viscous / forced_energy
-      ! Recalibration of forcing according to dissipation with a noise
-
-! print*,'forced',energy,g_toss(1)
-      F_k_x         = force_factor * dt * F_k_x * diss_Ifactor
-      F_k_y         = force_factor * dt * F_k_y * diss_Ifactor
-      F_k_z         = force_factor * dt * F_k_z * diss_Ifactor
-      ! Normalizing the forcing so that it equals the dissipation rate
-
-    END IF
+    pre_factor_forcing =  diss_rate_viscous / ( two * energy_forcing_modes )
+    LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+      j_z = fkz( ct )
+      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - pre_factor_forcing ) * dt )
+    END DO LOOP_FORCING_MODES_302
 
   END
 
@@ -487,39 +365,41 @@ MODULE system_basicfunctions
 
     k_dot_v_norm   = zero
 
-    DO i_x         = 0, Nh
-    DO i_y         = -Nh, Nh - 1
-    DO i_z         = -Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                           i_y * v_y( i_x, i_y, i_z ) + &
-                                           i_z * v_z( i_x, i_y, i_z ) ) ** two
+    incomp_error   = zero
+
+    DO j_x         = 0, Nh
+    DO j_y         = -Nh, Nh - 1
+    DO j_z         = -Nh, Nh - 1
+      k_dot_v_norm = k_dot_v_norm + CDABS( j_x * v_x( j_x, j_y, j_z ) + &
+                                           j_y * v_y( j_x, j_y, j_z ) + &
+                                           j_z * v_z( j_x, j_y, j_z ) ) ** two
     END DO
     END DO
     END DO
 
-    i_x            = 0
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + hf* CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                               i_y * v_y( i_x, i_y, i_z ) + &
-                                               i_z * v_z( i_x, i_y, i_z ) ) ** two
+    j_x            = 0
+    DO j_y         = - Nh, Nh - 1
+    DO j_z         = - Nh, Nh - 1
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( j_x * v_x( j_x, j_y, j_z ) + &
+                                               j_y * v_y( j_x, j_y, j_z ) + &
+                                               j_z * v_z( j_x, j_y, j_z ) ) ** two
     END DO
     END DO
 
-    i_x            = Nh
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + hf* CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                               i_y * v_y( i_x, i_y, i_z ) + &
-                                               i_z * v_z( i_x, i_y, i_z ) ) ** two
+    j_x            = Nh
+    DO j_y         = - Nh, Nh - 1
+    DO j_z         = - Nh, Nh - 1
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( j_x * v_x( j_x, j_y, j_z ) + &
+                                               j_y * v_y( j_x, j_y, j_z ) + &
+                                               j_z * v_z( j_x, j_y, j_z ) ) ** two
     END DO
     END DO
 
     k_dot_v_norm = DSQRT( k_dot_v_norm )
 
-    IF (k_dot_v_norm .GT. tol_float ) THEN
+    COMPRESSIBILITY_CHECK_101: IF (k_dot_v_norm .GT. tol_float ) THEN
 
-      k_dot_v_error = 1
+      incomp_error = 1
 
       debug_error = 1
       ! This will jump out of evolution loop, if caught during that.
@@ -528,7 +408,8 @@ MODULE system_basicfunctions
       ! This will prompt error when checked
       ! REF-> <<< system_output >>>
 
-    END IF
+    END IF COMPRESSIBILITY_CHECK_101
+
   END
 
   SUBROUTINE check_nan
@@ -540,37 +421,39 @@ MODULE system_basicfunctions
 
     IMPLICIT NONE
 
-    NaN_count  = 0
+    nan_count  = 0
 
-    DO i_x         = 0, Nh
-    DO i_y         = -Nh, Nh - 1
-    DO i_z         = -Nh, Nh - 1
-      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
-        NaN_count = NaN_count + 1
+    DO j_x         = 0, Nh
+    DO j_y         = -Nh, Nh - 1
+    DO j_z         = -Nh, Nh - 1
+      IF ( v_x( j_x, j_y, j_z ) .NE. v_x( j_x, j_y, j_z ) ) THEN
+        nan_count = nan_count + 1
       END IF
     END DO
     END DO
     END DO
 
-    i_x            = 0
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
-        NaN_count = NaN_count + 1
+    j_x            = 0
+    DO j_y         = - Nh, Nh - 1
+    DO j_z         = - Nh, Nh - 1
+      IF ( v_x( j_x, j_y, j_z ) .NE. v_x( j_x, j_y, j_z ) ) THEN
+        nan_count = nan_count + 1
       END IF
     END DO
     END DO
 
-    i_x            = Nh
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
-        NaN_count = NaN_count + 1
+    j_x            = Nh
+    DO j_y         = - Nh, Nh - 1
+    DO j_z         = - Nh, Nh - 1
+      IF ( v_x( j_x, j_y, j_z ) .NE. v_x( j_x, j_y, j_z ) ) THEN
+        nan_count = nan_count + 1
       END IF
     END DO
     END DO
 
-    IF (NaN_count .NE. 0) THEN
+    NAN_CHECK_101: IF (nan_count .NE. 0) THEN
+
+      nan_error   = 1
 
       debug_error = 1
       ! This will jump out of evolution loop, if caught during that.
@@ -579,7 +462,7 @@ MODULE system_basicfunctions
       ! This will prompt error when checked
       ! REF-> <<< system_output >>>
 
-    END IF
+    END IF NAN_CHECK_101
 
   END
 

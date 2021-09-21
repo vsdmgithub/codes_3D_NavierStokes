@@ -29,7 +29,7 @@ MODULE system_basicoutput
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_basicvariables
+  USE system_basicdeclaration
 
   IMPLICIT NONE
   ! _________________________
@@ -63,7 +63,7 @@ MODULE system_basicoutput
     CALL create_output_dir
     ! Creates the directories
 
-    CALL write_simulation_details
+    CALL write_simulation_start_details
     ! Writes the parameters used in the simulation
 
 	END
@@ -165,7 +165,7 @@ MODULE system_basicoutput
 
   END
 
-  SUBROUTINE write_simulation_details
+  SUBROUTINE write_simulation_start_details
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -174,7 +174,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    file_name = TRIM(ADJUSTL(file_address))//'system_details'
+    file_name = TRIM(ADJUSTL(file_address))//'system_start_details'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  I  M  U  L  A  T  I  O  N     D  E  T  A  I  L  S
@@ -191,23 +191,27 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)")     'Resolution    ','= ',N
     WRITE(233,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
     WRITE(233,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
-    WRITE(233,"(A20,A2,I8)")     'Reynolds ','= ',Rey_No
-    WRITE(233,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',Tay_Rey_No
+    WRITE(233,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    WRITE(233,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
     WRITE(233,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
-    WRITE(233,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kolmo
+    WRITE(233,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    WRITE(233,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    WRITE(233,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
     WRITE(233,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
     WRITE(233,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
     WRITE(233,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
-    WRITE(233,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kolmo
-    WRITE(233,"(A20,A2,F8.6)")   'Turbulent time ','= ',time_turb
-    WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    WRITE(233,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    WRITE(233,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
     WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
     WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
-    WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
+    WRITE(233,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    WRITE(233,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    WRITE(233,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
     WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
-    WRITE(233,"(A20,A2,F8.4)")   'Dissipation(Aprox)','= ',diss_rate_ref
+    WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
     WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
@@ -221,29 +225,121 @@ MODULE system_basicoutput
     WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(*,*)
-    WRITE(*,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(*,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
-    WRITE(*,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
     WRITE(*,"(A20,A2,I8)")     'Resolution    ','= ',N
     WRITE(*,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
     WRITE(*,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
-    WRITE(*,"(A20,A2,I8)")     'Reynolds ','= ',Rey_No
-    WRITE(*,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',Tay_Rey_No
+    WRITE(*,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    WRITE(*,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
     WRITE(*,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
-    WRITE(*,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kolmo
+    WRITE(*,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    WRITE(*,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    WRITE(*,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
     WRITE(*,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
     WRITE(*,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
     WRITE(*,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
-    WRITE(*,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kolmo
-    WRITE(*,"(A20,A2,F8.6)")   'Turbulent time ','= ',time_turb
-    WRITE(*,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    WRITE(*,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    WRITE(*,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
     WRITE(*,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    WRITE(*,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
     WRITE(*,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
-    WRITE(*,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
+    WRITE(*,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    WRITE(*,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    WRITE(*,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
     WRITE(*,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(*,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
     WRITE(*,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
-    WRITE(*,"(A20,A2,F8.4)")   'Dissipation(Aprox)','= ',diss_rate_ref
+    WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
+    WRITE(*,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
+    WRITE(*,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(*,*)
+    WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+
+  END
+
+  SUBROUTINE write_simulation_end_details
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  !   Write the details of the simulation
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT  NONE
+
+    file_name = TRIM(ADJUSTL(file_address))//'system_end_details'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   S  I  M  U  L  A  T  I  O  N     D  E  T  A  I  L  S
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN(UNIT =233,FILE=TRIM( ADJUSTL( file_name ) ) // '.dat')
+
+    WRITE(233,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+    WRITE(233,*)
+    WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    WRITE(233,"(A20,A2,I8)")     'Resolution    ','= ',N
+    WRITE(233,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
+    WRITE(233,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    WRITE(233,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    WRITE(233,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
+    WRITE(233,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
+    WRITE(233,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    WRITE(233,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    WRITE(233,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
+    WRITE(233,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
+    WRITE(233,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
+    WRITE(233,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
+    WRITE(233,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    WRITE(233,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
+    WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
+    WRITE(233,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    WRITE(233,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    WRITE(233,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
+    WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
+    WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
+    WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
+    WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
+    WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,*)
+    WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+
+    CLOSE(233)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
+    WRITE(*,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
+    WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+    WRITE(*,*)
+    WRITE(*,"(A20,A2,I8)")     'Resolution    ','= ',N
+    WRITE(*,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
+    WRITE(*,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    WRITE(*,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    WRITE(*,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
+    WRITE(*,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
+    WRITE(*,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    WRITE(*,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    WRITE(*,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
+    WRITE(*,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
+    WRITE(*,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
+    WRITE(*,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
+    WRITE(*,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    WRITE(*,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
+    WRITE(*,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    WRITE(*,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    WRITE(*,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
+    WRITE(*,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    WRITE(*,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    WRITE(*,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
+    WRITE(*,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
+    WRITE(*,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
+    WRITE(*,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
+    WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
     WRITE(*,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
     WRITE(*,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
@@ -350,6 +446,34 @@ MODULE system_basicoutput
 
   END
 
+  SUBROUTINE write_spectral_velocity_unformatted
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a spectral velocity, in such a way that it can be used
+  ! for input in the next simulation using 'IC_from_file' subroutine.
+  ! This is unformatted file - (written in binary lang)
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_3D )) &
+                // 'spectral_velocity_' //TRIM( ADJUSTL( N_char ) ) // '.in'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! File where energy vs time will be written. With additional data
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN( UNIT = 73, FILE = file_name, FORM = 'unformatted', STATUS = 'unknown' )
+    WRITE(73) ((( DREAL(v_x(j_x,j_y,j_z)),DIMAG(v_x(j_x,j_y,j_z)), &
+                  DREAL(v_y(j_x,j_y,j_z)),DIMAG(v_y(j_x,j_y,j_z)), &
+                  DREAL(v_z(j_x,j_y,j_z)),DIMAG(v_z(j_x,j_y,j_z)), &
+                  j_z = -Nh, Nh - 1 ),j_y = -Nh, Nh - 1 ), j_x =   0, Nh )
+    CLOSE(73)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
   SUBROUTINE write_spectral_velocity
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -360,7 +484,7 @@ MODULE system_basicoutput
     IMPLICIT NONE
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_3D )) &
-                // 'spectral_velocity_' //TRIM( ADJUSTL( N_char ) ) // '_input.dat'
+                // 'spectral_velocity_' //TRIM( ADJUSTL( N_char ) ) // '.dat'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! File where energy vs time will be written. With additional data
@@ -368,14 +492,14 @@ MODULE system_basicoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    OPEN( unit = 73, file = file_name )
-    DO i_x =   0, Nh
-    DO i_y = -Nh, Nh - 1
-    DO i_z = -Nh, Nh - 1
+    OPEN( UNIT = 73, FILE = file_name )
+    DO j_x =   0, Nh
+    DO j_y = -Nh, Nh - 1
+    DO j_z = -Nh, Nh - 1
 
-      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_x(i_x,i_y,i_z)),DIMAG(v_x(i_x,i_y,i_z))
-      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_y(i_x,i_y,i_z)),DIMAG(v_y(i_x,i_y,i_z))
-      WRITE(73,f_c32p17,ADVANCE ='yes')   DREAL(v_z(i_x,i_y,i_z)),DIMAG(v_z(i_x,i_y,i_z))
+      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_x(j_x,j_y,j_z)),DIMAG(v_x(j_x,j_y,j_z))
+      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_y(j_x,j_y,j_z)),DIMAG(v_y(j_x,j_y,j_z))
+      WRITE(73,f_c32p17,ADVANCE ='yes')   DREAL(v_z(j_x,j_y,j_z)),DIMAG(v_z(j_x,j_y,j_z))
 
     END DO
     END DO
@@ -403,7 +527,7 @@ MODULE system_basicoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! File where energy vs time will be written. With additional data
 
-    OPEN( unit = 74, file = file_name )
+    OPEN( UNIT = 74, FILE = file_name )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -424,6 +548,34 @@ MODULE system_basicoutput
 
   END
 
+  SUBROUTINE write_velocity_unformatted
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a real velocity. To read and plot velocity functions
+  ! Writtein unformatted.
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_3D )) // 'velocity_' &
+              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.in'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! File where energy vs time will be written. With additional data
+
+    OPEN( UNIT = 74, FILE = file_name, FORM = 'unformatted', STATUS = 'unknown' )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    WRITE(74) ((( u_x(i_x,i_y,i_z),u_y(i_x,i_y,i_z),u_z(i_x,i_y,i_z), &
+                  i_z = 0 , N - 1 ), i_y = 0 , N - 1 ), i_x = 0 , N - 1 )
+    CLOSE(74)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
   SUBROUTINE print_running_status
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------

@@ -25,6 +25,7 @@
 ! system_advfunctions
 ! system_initialcondition
 ! system_basicvariables
+! system_basicdeclaration
 ! system_advvariables
 ! system_constants
 ! system_basicoutput
@@ -60,13 +61,16 @@ USE system_timer
   !  I  N  I  T  I  A  L  I  Z  A  T  I  O  N
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   CALL read_input
-	! REF-> <<< system_variables >>>
+	! REF-> <<< system_basicdeclaration >>>
 
   CALL init_global_variables
-	! REF-> <<< system_variables >>>
+	! REF-> <<< system_basicdeclaration >>>
+
+  CALL compute_system_details
+	! REF-> <<< system_basicdeclaration >>>
 
 	CALL init_global_arrays
-	! REF-> <<< system_variables >>>
+	! REF-> <<< system_basicdeclaration >>>
 
 	! We get all the variables, and global arrays ready allocated
 
@@ -76,7 +80,7 @@ USE system_timer
   run_code 		= 'y'
 	! Simple way to ON or OFF the running of the simulation.
 
-  IF ( run_code .EQ. 'y' ) THEN
+  CODE_EVALUTION:IF ( run_code .EQ. 'y' ) THEN
 
 		CALL start_run_timer
 		! Clocks the date and time - PROGRAM STARTS
@@ -86,7 +90,7 @@ USE system_timer
     ! Allocating the evolution arrays, if everything is set, 'check_status' will be 1.
 		! REF-> <<< system_main >>>
 
-    IF ( check_status .EQ. 1 ) THEN
+    PRECHECK_STATUS_102: IF ( precheck_status .EQ. 1 ) THEN
 
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('   S  I  M  U  L  A  T  I  O  N        S  T  A  R  T  S '))
@@ -105,9 +109,9 @@ USE system_timer
 
 			END IF
 
-    END IF
+    END IF PRECHECK_STATUS_102
 
-    IF ( state_sim .EQ. 1 ) THEN
+    IF ( simulation_status .EQ. 1 ) THEN
 
 			WRITE(*,*)
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
@@ -120,9 +124,9 @@ USE system_timer
 		! Clocks the date and time - PROGRAM STARTS
 		! REF-> <<< system_timer >>>
 
-  END IF
+  END IF CODE_EVALUTION
 
-	IF ( test_code .EQ. 'y' ) THEN
+	TEST_EVOLUTION:IF ( test_code .EQ. 'y' ) THEN
 
 		CALL pre_analysis
     ! Allocating the evolution arrays
@@ -136,6 +140,6 @@ USE system_timer
 		! Checks time for one evolution step - predicts total time
 		! REF-> <<< system_test >>>
 
-	END IF
+	END IF TEST_EVOLUTION
 
 END PROGRAM NSE

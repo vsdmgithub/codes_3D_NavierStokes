@@ -80,7 +80,7 @@ MODULE system_test
     WRITE(*,*)
 		WRITE(*,'(A60)')			TRIM( ADJUSTL( '-_-_-_-_-_-_-_-_-_-_-_--_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-' ) )
 		WRITE(*,*)
-		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' |||   F F T    T E S T    C O M P L E T E D  ||| :' ) )
+		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' |||   F F T    T E S T    C O M P L E T E D  ||| ' ) )
     WRITE(*,*)
 		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
 		WRITE(*,'(A40,F8.2)')TRIM( ADJUSTL( ' TIME PER FFT (MICROSECONDS) :  ' ) ), time_micros
@@ -128,7 +128,7 @@ MODULE system_test
     WRITE(*,*)
 		WRITE(*,'(A60)')			TRIM( ADJUSTL( '-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-' ) )
 		WRITE(*,*)
-		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' |||   E V O L U T I O N    T E S T    C O M P L E T E D  ||| :' ) )
+		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' |||   E V O L U T I O N    T E S T    C O M P L E T E D  |||' ) )
     WRITE(*,*)
 		WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
 		WRITE(*,'(A40,F8.2)')TRIM( ADJUSTL( ' TIME PER EVOLUTION (SECONDS) :  ' ) ), time_seconds
@@ -149,7 +149,11 @@ MODULE system_test
     WRITE(*,'(A40,I4)')TRIM( ADJUSTL( ' ESTIMATED TIME (HRS) :' ) ), time_estimate
     WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
 
+
     CALL deallocate_velocity
+
+    CALL deallocate_vorticity
+
     CALL deallocate_operators
 
 	END

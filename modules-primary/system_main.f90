@@ -44,6 +44,8 @@ MODULE system_main
 !   |
 !   ∟ ---> INITIAL CONDITION
 !   |
+!   ∟ ---> BASIC DECLARATION
+!   |
 !   ∟ ---> BASIC VARIABLES
 !   |
 !   ∟ ---> ADV VARIABLES
@@ -79,14 +81,14 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !       T    I    M     E              S    T    E    P              C   H    E   C   K
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF ( ( dt .LE. dt_max ) ) THEN
+    TIME_STEP_MIN_CHECK:IF ( ( dt .LE. dt_max ) ) THEN
 
       CALL allocate_velocity
       ! Allocates velocity arrays for the system to start initialisation
-      ! REF-> <<< system_basicvariables >>>
+      ! REF-> <<< system_basicdeclaration >>>
 
       CALL allocate_vorticity
-      ! REF-> <<< system_basicvariables >>>
+      ! REF-> <<< system_basicdeclaration >>>
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
@@ -101,9 +103,9 @@ MODULE system_main
       CALL print_error_timestep()
       ! REF-> <<< system_basicoutput >>>
 
-    END IF
+    END IF TIME_STEP_MIN_CHECK
 
-    IF ( check_status .EQ. 1 ) THEN
+    PRECHECK_STATUS_101: IF ( precheck_status .EQ. 1 ) THEN
 
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
@@ -114,12 +116,10 @@ MODULE system_main
               solver_alg  = 'rk'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
-      check_status = 1
-
       CALL allocate_solver_system
       ! Allocates arrays for solver
 
-      IF ( run_code .EQ. 'y' ) THEN
+      RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
 
         CALL prepare_output
         ! Create names, folders to save files, open files in them to write data.
@@ -129,9 +129,9 @@ MODULE system_main
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
-      END IF
+      END IF RUN_CODE_CHECK
 
-    END IF
+    END IF PRECHECK_STATUS_101
 
   END
 
@@ -155,39 +155,40 @@ MODULE system_main
     !  ---------------------------------------------------------------
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
-    DO t_step = 0, t_step_total
+    LOOP_TIME_EVOLUTION: DO t_step = 0, t_step_total
 
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
 
-      IF ( debug_error .EQ. 1 ) THEN
+      DEBUG_ERROR_CHECK:IF ( debug_error .EQ. 1 ) THEN
         EXIT
         ! Meaning some error in computation.
-      END IF
+      END IF DEBUG_ERROR_CHECK
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF ( ( solver_alg .EQ. 'rk') )  THEN
+      RK4_CHECK:IF ( ( solver_alg .EQ. 'rk') )  THEN
 
         CALL solver_RK4_algorithm
         ! REF-> <<< system_solver >>>
         GOTO 10101
 
-      END IF
-      IF ( ( solver_alg .EQ. 'ab') )  THEN
+      END IF RK4_CHECK
+
+      AB4_CHECK:IF ( ( solver_alg .EQ. 'ab') )  THEN
 
         CALL solver_AB4_algorithm
         ! REF-> <<< system_solver >>>
         GOTO 10101
 
-      END IF
+      END IF AB4_CHECK
       ! Updates v_x,v_y,v_z for next time step
 
     10101 CONTINUE
     ! Jumps straight out of loop to here.
 
-    END DO
+  END DO LOOP_TIME_EVOLUTION
     ! _________________________________________________________________
 
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
@@ -216,24 +217,27 @@ MODULE system_main
 
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
+    FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
-    ! CALL forcing_spectrum
-    ! REF-> <<< system_basicfunctions >>>
+      CALL compute_forcing_in_modes
+      ! REF-> <<< system_basicfunctions >>>
+
+    END IF FORCING_CHECK_401
 
     CALL write_temporal_data
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL write_test_data
+    CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
-    IF (MOD(t_step,t_step_save) .EQ. 0) THEN
+    SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
 
-    END IF
+    END IF SAVE_DATA_CHECK
 
-    IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
+    SAVE_DATA_CHECK_3D:IF (MOD(t_step,t_step_3D_save) .EQ. 0) THEN
 
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
@@ -247,22 +251,22 @@ MODULE system_main
       ! CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
-    END IF
+    END IF SAVE_DATA_CHECK_3D
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D  E  B  U  G             F  O  R          N  a   N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF (MOD(t_step,t_step_debug) .EQ. 0) THEN
+    DEBUG:IF (MOD(t_step,t_step_debug) .EQ. 0) THEN
 
-      CALL perform_debug
+      ! CALL perform_debug
       ! REF-> <<< system_basicfunctions >>>
 
       CALL print_running_status
       ! REF-> <<< system_basicoutput >>>
 
-    END IF
+    END IF DEBUG
 
-   END
+  END
 
   SUBROUTINE post_analysis
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -272,20 +276,31 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
+    CALL compute_system_details
+    ! REF-> <<< system_basicdeclaration >>>
+
+    CALL write_simulation_end_details
+    ! Writes the parameters used in the simulation at end
+
     ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
     ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL write_velocity
+    CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL allocate_dissipation_field
+    ! CALL write_velocity_unformatted
+    ! REF-> <<< system_basicoutput >>>
+
+    ! CALL allocate_dissipation_field
     ! REF-> <<< system_advvariables >>>
-    CALL compute_dissipation_field
+
+    ! CALL compute_dissipation_field
     ! REF-> <<< system_advfunctions >>>
-    CALL deallocate_dissipation_field
+
+    ! CALL deallocate_dissipation_field
     ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_PVD_subset_arrays
@@ -294,15 +309,15 @@ MODULE system_main
     CALL deallocate_solver_system
 
     CALL deallocate_velocity
-    ! REF-> <<< system_basicvariables >>>
+    ! REF-> <<< system_basicdeclaration >>>
 
     CALL deallocate_vorticity
-    ! REF-> <<< system_basicvariables >>>
+    ! REF-> <<< system_basicdeclaration >>>
 
     CALL deallocate_operators
-    ! REF-> <<< system_basicvariables >>>
+    ! REF-> <<< system_basicdeclaration >>>
 
-    state_sim = 1
+    simulation_status = 1
     ! Stating that the simulation has ended.
 
   END
