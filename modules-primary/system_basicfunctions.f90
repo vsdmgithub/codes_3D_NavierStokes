@@ -250,6 +250,7 @@ MODULE system_basicfunctions
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)::ct
+    DOUBLE PRECISION::rd1,rd2,std,avg,noise
     DOUBLE PRECISION::pre_factor_forcing
 
     energy_forcing_modes = zero
@@ -270,14 +271,18 @@ MODULE system_basicfunctions
 
     END DO LOOP_FORCING_MODES_301
 
-    pre_factor_forcing =  diss_rate_viscous / ( two * energy_forcing_modes )
+		pre_factor_forcing = diss_rate_viscous + diss_rate
+    ! Matches with the visous dissipation
+    ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
+    ! decreasing, it would decrease the forcing.
+    pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
+
     LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
       j_x = fkx( ct )
       j_y = fky( ct )
       j_z = fkz( ct )
       integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - pre_factor_forcing ) * dt )
     END DO LOOP_FORCING_MODES_302
-
   END
 
   SUBROUTINE compute_energy

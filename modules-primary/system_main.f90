@@ -224,12 +224,15 @@ MODULE system_main
 
     END IF FORCING_CHECK_401
 
+    ! CALL write_section('sec_velX',u_x(0,:,:))
+    CALL write_section('sec_vorX',w_ux(0,:,:))
+    ! REF-> <<< system_basicoutput >>>
+
     CALL write_temporal_data
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_test_data
+    ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
-
     SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
@@ -258,7 +261,7 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEBUG:IF (MOD(t_step,t_step_debug) .EQ. 0) THEN
 
-      ! CALL perform_debug
+      CALL perform_debug
       ! REF-> <<< system_basicfunctions >>>
 
       CALL print_running_status
@@ -280,7 +283,14 @@ MODULE system_main
     ! REF-> <<< system_basicdeclaration >>>
 
     CALL write_simulation_end_details
+    ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
+
+    ! CALL compute_velocity_gradient
+    ! REF-> <<< system_advfunctions >>>
+
+    ! CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
 
     ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step

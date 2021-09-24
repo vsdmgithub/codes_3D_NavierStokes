@@ -29,37 +29,12 @@ MODULE system_advoutput
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_advvariables
+  USE system_advdeclaration
   USE system_basicoutput
 
   IMPLICIT NONE
 
   CONTAINS
-
-  SUBROUTINE write_dummy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to write the list of exponents
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'dummy.dat'
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    OPEN(unit = 8880, file = file_name )
-
-    DO dum_int = 1,10
-
-      WRITE(8880,f_d8p4,ADVANCE ='yes') dummy_ar( dum_int )
-
-    END DO
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CLOSE(8880)
-
-  END
 
   SUBROUTINE write_dissipation_field
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -76,7 +51,6 @@ MODULE system_advoutput
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_3D )) // 'ds_field_' &
               //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ! File where energy vs time will be written. With additional data
 
     OPEN( unit = 774, file = file_name )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -86,7 +60,7 @@ MODULE system_advoutput
     DO i_y = 0 , N - 1
     DO i_z = 0 , N - 1
 
-      WRITE(774,f_d32p17,ADVANCE ='YES')   dissipation_field(i_x,i_y,i_z)
+      ! WRITE(774,f_d32p17,ADVANCE ='YES')   ds_rate(i_x,i_y,i_z)
 
     END DO
     END DO
@@ -97,5 +71,39 @@ MODULE system_advoutput
 
   END
 
+  SUBROUTINE write_QR_pdf
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes the pdf of QR invariants
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // 'QR_pdf_' &
+              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    OPEN( unit = 778, file = file_name )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DO q_b = 1, q_bins
+    DO r_b = 1, r_bins
+
+      WRITE(778,f_d12p6,ADVANCE ='NO') q_val( q_b )
+      WRITE(778,f_d12p6,ADVANCE ='NO') r_val( r_b )
+      WRITE(778,f_d32p17,ADVANCE ='YES') pdf_QR( q_b, r_b )
+
+    END DO
+    END DO
+
+    CLOSE(778)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
 
 END MODULE system_advoutput

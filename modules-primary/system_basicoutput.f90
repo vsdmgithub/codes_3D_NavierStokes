@@ -124,7 +124,7 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
 
-    ! CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error
@@ -302,7 +302,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
     WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
-    WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
+    WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
     WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
@@ -339,7 +339,7 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(*,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
     WRITE(*,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
-    WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
+    WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
     WRITE(*,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
     WRITE(*,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
@@ -544,6 +544,41 @@ MODULE system_basicoutput
     END DO
 
     CLOSE(74)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_section(f_name,dta)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a real velocity. To read and plot velocity functions
+  ! -------------
+
+    IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN)::f_name
+    DOUBLE PRECISION,DIMENSION(0:N-1,0:N-1),INTENT(IN)::dta
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_2D )) // TRIM( ADJUSTL( f_name ) ) &
+              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! File where energy vs time will be written. With additional data
+
+    OPEN( UNIT = 374, FILE = file_name )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DO i_y = 0 , N - 1
+    DO i_z = 0 , N - 1
+
+      WRITE(374,f_d32p17,ADVANCE ='YES') dta( i_y, i_z)
+
+    END DO
+    END DO
+
+    CLOSE(374)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END

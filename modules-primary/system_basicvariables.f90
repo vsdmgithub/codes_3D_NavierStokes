@@ -30,7 +30,7 @@ MODULE system_basicvariables
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_constants
-  
+
   IMPLICIT NONE
   ! _________________________
   ! REAL SPACE
@@ -115,10 +115,6 @@ MODULE system_basicvariables
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux,w_uy,w_uz         ! Real vorticity (updated every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz! Projection operators
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xy,proj_yz,proj_zx! \mathbb{P}_{ij}=\delta_{ij}-\frac{k_ik_j}{k^2}}
-  ! DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::duxx,duyy,duzz         ! Gradient of velocity
-  ! DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::duxy,duyx
-  ! DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::duzy,duyz
-  ! DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::duxz,duzx              ! Gradient of velocity
   ! _________________________________________
   ! FOURIER SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -130,12 +126,6 @@ MODULE system_basicvariables
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_2                       ! Spectral laplacian factor
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::truncator                 ! Truncating mask
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::integrating_factor        ! Integration factor for the dissipation
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::dvxx,dvyy,dvzz
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::dvxy,dvyx
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::dvzx,dvxz
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::dvyz,dvzy                 ! Spectral gradient of velocity
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::h_pos_x,h_pos_y,h_pos_z
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::h_neg_x,h_neg_y,h_neg_z   ! Helical basis
 
   ! _________________________________________
   ! SPECTRAL ARRAYS

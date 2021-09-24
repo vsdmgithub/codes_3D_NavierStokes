@@ -24,6 +24,7 @@ auxilaries_mod       =modules-secondary/system_auxilaries.f90
 basicvariables_mod   =modules-primary/system_basicvariables.f90
 basicdeclar_mod      =modules-primary/system_basicdeclaration.f90
 advvariables_mod     =modules-primary/system_advvariables.f90
+advdeclaration_mod   =modules-primary/system_advdeclaration.f90
 initialcondition_mod =modules-primary/system_initialcondition.f90
 basicfunctions_mod   =modules-primary/system_basicfunctions.f90
 advfunctions_mod     =modules-primary/system_advfunctions.f90
@@ -43,6 +44,7 @@ obj=system_timer.o\
 	system_auxilaries.o\
 	system_basicvariables.o\
 	system_advvariables.o\
+	system_advdeclaration.o\
 	system_initialcondition.o\
 	system_basicfunctions.o\
 	system_basicdeclaration.o\
@@ -80,6 +82,7 @@ ex:$(ob)
 	$(cc) -c $(solver_mod)
 	$(cc) -c $(test_mod)
 	$(cc) -c $(advvariables_mod)
+	$(cc) -c $(advdeclaration_mod)
 	$(cc) -c $(advoutput_mod)
 	$(cc) -c $(pvdoutput_mod)
 	$(cc) -c $(advfunctions_mod)
