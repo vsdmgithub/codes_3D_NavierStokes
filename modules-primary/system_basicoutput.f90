@@ -299,11 +299,11 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
     WRITE(233,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
     WRITE(233,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
-    WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
-    WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
-    WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
+    WRITE(233,"(A20,A2,F8.4)")   'Final energy ','= ',energy
+    WRITE(233,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
+    WRITE(233,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
     WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
-    WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
@@ -336,12 +336,12 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
     WRITE(*,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
     WRITE(*,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
-    WRITE(*,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
-    WRITE(*,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
-    WRITE(*,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
+    WRITE(*,"(A20,A2,F8.4)")   'Final energy ','= ',energy
+    WRITE(*,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
+    WRITE(*,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
     WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
-    WRITE(*,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
-    WRITE(*,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(*,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
+    WRITE(*,"(A20,A2,A8)")     'Final condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 

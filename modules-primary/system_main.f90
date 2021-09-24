@@ -214,9 +214,9 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
+
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
       CALL compute_forcing_in_modes
@@ -286,10 +286,10 @@ MODULE system_main
     ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
 
-    ! CALL compute_velocity_gradient
+    CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
-    ! CALL compute_strain_tensor
+    CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )

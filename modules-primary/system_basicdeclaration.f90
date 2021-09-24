@@ -144,8 +144,11 @@ MODULE system_basicdeclaration
     energy_old        = energy
     ! Initial energy
 
-    ! viscosity         = 8.0D0 * 1.0E-3 ! For N=128
-    viscosity         = 4.0D0 * 1.0E-3 ! For N=256
+    ! XXXXXXXXXXXXXXXXXXXXXX
+    ! VISCOSITY_SELECTION:
+    ! XXXXXXXXXXXXXXXXXXXXXX
+    viscosity         = ( 128.0D0 / DBLE( N ) ) * 8.0D0 * 1.0E-3
+    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256
     ! Viscosity of the system
 
     k_int             = 5
@@ -156,8 +159,7 @@ MODULE system_basicdeclaration
 
     CALL find_diss_rate_ref( energy_initial, k_int, diss_rate_ref )
     ! Gives a estimate of dissipation rate fitting the Kolmogorov spectrum approximately
-    ! diss_rate_ref     = 0.54D0 ! For N=128
-    diss_rate_ref     = 0.52D0 ! For N=256
+    diss_rate_ref     = 0.50D0 ! For N=256
 
     diss_rate_viscous = diss_rate_ref
     ! Assuming viscous dissipation as reference for start

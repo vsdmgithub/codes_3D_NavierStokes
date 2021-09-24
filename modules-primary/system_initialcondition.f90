@@ -413,7 +413,7 @@ MODULE system_initialcondition
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    IC_file_name  = 'spectral_velocity_' // TRIM( ADJUSTL( N_char ) ) // '_input.dat'
+    IC_file_name  = '../NSE_data/vel/spectral_velocity_' // TRIM( ADJUSTL( N_char ) ) // '_input.dat'
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -462,7 +462,7 @@ MODULE system_initialcondition
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    IC_file_name  = 'velocity_' // TRIM( ADJUSTL( N_char ) ) // '.dat'
+    IC_file_name  = '../NSE_data/vel/velocity_' // TRIM( ADJUSTL( N_char ) ) // '.dat'
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -526,7 +526,7 @@ MODULE system_initialcondition
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    IC_file_name  = 'velocity_' // TRIM( ADJUSTL( N_char ) ) // '.in'
+    IC_file_name  = '../NSE_data/vel/velocity_' // TRIM( ADJUSTL( N_char ) ) // '.in'
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

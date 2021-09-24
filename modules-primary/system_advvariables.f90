@@ -31,6 +31,10 @@ MODULE system_advvariables
   ! VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4)  :: q_b, r_b
+  INTEGER(KIND=4)  :: avg_b,dif_b
+  INTEGER(KIND=4)  :: avg_bins,dif_bins
+  INTEGER(KIND=4)  :: pdf_sz
+  INTEGER(KIND=4)  :: jump_sz
   INTEGER(KIND=4)  :: q_bins, r_bins
   DOUBLE PRECISION :: q_max, r_max
   ! _________________________
@@ -41,7 +45,10 @@ MODULE system_advvariables
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_QR
+  DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_ev
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::q_val,r_val
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_avg_val,ev_dif_val
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_avg,ev_dif
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::ds_rate
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::q_invar,r_invar        ! Invariants of velocity gradient tensor
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xx,s_yy,s_zz

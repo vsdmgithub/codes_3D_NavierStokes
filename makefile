@@ -21,6 +21,7 @@ vtr_mod              =modules-secondary/system_VTR.f90
 vtk_mod              =modules-secondary/system_VTK.f90
 constants_mod        =modules-secondary/system_constants.f90
 auxilaries_mod       =modules-secondary/system_auxilaries.f90
+stat_mod             =modules-secondary/system_eigendecomposition.f90
 basicvariables_mod   =modules-primary/system_basicvariables.f90
 basicdeclar_mod      =modules-primary/system_basicdeclaration.f90
 advvariables_mod     =modules-primary/system_advvariables.f90
@@ -40,6 +41,7 @@ obj=system_timer.o\
 	system_fftw.o\
 	system_VTR.o\
 	system_VTK.o\
+	system_eigendecomposition.o\
 	system_constants.o\
 	system_auxilaries.o\
 	system_basicvariables.o\
@@ -72,6 +74,7 @@ ex:$(ob)
 	$(cc) -c $(timer_mod)
 	$(cc) -c $(vtr_mod)
 	$(cc) -c $(vtk_mod)
+	$(cc) -c $(stat_mod)
 	$(cc) -c $(constants_mod)
 	$(cc) -c $(auxilaries_mod)
 	$(cc) -c $(basicvariables_mod)
