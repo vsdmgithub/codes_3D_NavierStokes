@@ -30,8 +30,10 @@ initialcondition_mod =modules-primary/system_initialcondition.f90
 basicfunctions_mod   =modules-primary/system_basicfunctions.f90
 advfunctions_mod     =modules-primary/system_advfunctions.f90
 solver_mod          =modules-secondary/system_solver.f90
+solver2_mod          =modules-secondary/system_solver2.f90
 test_mod             =modules-secondary/system_test.f90
 basicoutput_mod      =modules-primary/system_basicoutput.f90
+decor_mod             =modules-primary/system_decorrelator.f90
 advoutput_mod        =modules-primary/system_advoutput.f90
 pvdoutput_mod        =modules-primary/system_pvdoutput.f90
 main_mod             =modules-primary/system_main.f90
@@ -51,7 +53,9 @@ obj=system_timer.o\
 	system_basicfunctions.o\
 	system_basicdeclaration.o\
 	system_advfunctions.o\
+	system_decorrelator.o\
 	system_solver.o\
+	system_solver2.o\
 	system_basicoutput.o\
 	system_advoutput.o\
 	system_test.o\
@@ -83,12 +87,14 @@ ex:$(ob)
 	$(cc) -c $(basicoutput_mod)
 	$(cc) -c $(basicfunctions_mod)
 	$(cc) -c $(solver_mod)
+	$(cc) -c $(solver2_mod)
 	$(cc) -c $(test_mod)
 	$(cc) -c $(advvariables_mod)
 	$(cc) -c $(advdeclaration_mod)
 	$(cc) -c $(advoutput_mod)
 	$(cc) -c $(pvdoutput_mod)
 	$(cc) -c $(advfunctions_mod)
+	$(cc) -c $(decor_mod)
 	$(cc) -c $(main_mod)
 	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
 	$(mkcl)

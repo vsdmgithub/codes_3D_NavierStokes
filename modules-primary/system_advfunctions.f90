@@ -91,20 +91,16 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
 
-    CALL allocate_strain_tensor
-
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  T  R  A  I  N        T  E  N  S  O  R        C  A  L  C.
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL fft_c2r( i * k_x * v_x, hf * i * ( k_y * v_x + k_x * v_y ), i * k_z * v_z , N, Nh, s_xx, s_xy, s_zz)
     CALL fft_c2r( i * k_y * v_y, hf * i * ( k_y * v_z + k_z * v_y ), hf * i * ( k_x * v_z + k_z * v_x ), N, Nh, s_yy, s_yz, s_zx)
 
-    CALL write_section('sec_Szz',s_zz(0,:,:))
+    ! CALL write_section('sec_Szz',s_zz(0,:,:))
     ! REF-> <<< system_basicoutput >>>
 
-    CALL compute_eigenvalue_distribution
-
-    CALL deallocate_strain_tensor
+    ! CALL compute_eigenvalue_distribution
 
   END
 

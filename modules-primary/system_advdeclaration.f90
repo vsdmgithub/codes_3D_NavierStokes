@@ -62,6 +62,7 @@ MODULE system_advdeclaration
     ALLOCATE(r_invar(0:N-1,0:N-1,0:N-1))
 
   END
+
   SUBROUTINE allocate_strain_tensor
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------

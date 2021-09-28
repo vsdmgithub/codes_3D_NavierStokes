@@ -305,7 +305,6 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
     WRITE(233,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
-    WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
     CLOSE(233)

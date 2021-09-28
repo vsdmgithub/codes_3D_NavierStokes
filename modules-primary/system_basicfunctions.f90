@@ -277,12 +277,64 @@ MODULE system_basicfunctions
     ! decreasing, it would decrease the forcing.
     pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
 
+    ! pre_factor_forcing = 0.710D0
     LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
       j_x = fkx( ct )
       j_y = fky( ct )
       j_z = fkz( ct )
       integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - pre_factor_forcing ) * dt )
     END DO LOOP_FORCING_MODES_302
+
+  END
+
+  SUBROUTINE compute_forcing_in_modes_with_perturbation
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! To assign values to the modes to force energy
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)::ct
+    DOUBLE PRECISION::rd1,rd2,std,avg,noise
+    DOUBLE PRECISION::pre_factor_forcing
+
+    energy_forcing_modes = zero
+    LOOP_FORCING_MODES_301: DO ct = 1, tot_forced_modes
+
+      j_x = fkx( ct )
+      j_y = fky( ct )
+      j_z = fkz( ct )
+      KX_EQ_ZERO_CHECK: IF ( j_x .EQ. 0 ) THEN
+      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v_z( j_x, j_y, j_z ) ) ** two )
+      ELSE
+      energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      END IF KX_EQ_ZERO_CHECK
+
+    END DO LOOP_FORCING_MODES_301
+
+		pre_factor_forcing = diss_rate_viscous + diss_rate
+    ! Matches with the visous dissipation
+    ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
+    ! decreasing, it would decrease the forcing.
+    pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
+
+    ! pre_factor_forcing = 0.710D0
+    LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+      j_z = fkz( ct )
+      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.5D0 * pre_factor_forcing ) * dt )
+    END DO LOOP_FORCING_MODES_302
+
   END
 
   SUBROUTINE compute_energy

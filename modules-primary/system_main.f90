@@ -46,6 +46,8 @@ MODULE system_main
 !   |
 !   ∟ ---> BASIC DECLARATION
 !   |
+!   ∟ ---> ADV DECLARATION
+!   |
 !   ∟ ---> BASIC VARIABLES
 !   |
 !   ∟ ---> ADV VARIABLES
@@ -60,7 +62,8 @@ MODULE system_main
   USE system_basicfunctions
   USE system_advfunctions
   USE system_pvdoutput
-  USE system_solver
+  USE system_solver2
+  USE system_decorrelator
   IMPLICIT NONE
   ! _________________________
   ! LOCAL VARIABLES
@@ -119,6 +122,12 @@ MODULE system_main
       CALL allocate_solver_system
       ! Allocates arrays for solver
 
+      CALL allocate_decorrelator
+      ! REF-> <<< system_decorrelator >>>
+
+      CALL allocate_strain_tensor
+      ! REF-> <<< system_advdeclaration >>>
+
       RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
 
         CALL prepare_output
@@ -134,6 +143,74 @@ MODULE system_main
     END IF PRECHECK_STATUS_101
 
   END
+
+  SUBROUTINE prepare_perturbation
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! Call this to create a perturbation
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    v2_x = v_x
+    v2_y = v_y
+    v2_z = v_z
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    RK4_CHECK:IF ( ( solver_alg .EQ. 'rk') )  THEN
+
+      FORCING_CHECK_408: IF ( forcing_status .EQ. 1 ) THEN
+
+        CALL compute_forcing_in_modes_with_perturbation
+        ! REF-> <<< system_basicfunctions >>>
+
+      END IF FORCING_CHECK_408
+
+      CALL solver2_RK4_algorithm
+      ! REF-> <<< system_solver >>>
+
+      FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
+
+        CALL compute_forcing_in_modes
+        ! REF-> <<< system_basicfunctions >>>
+
+      END IF FORCING_CHECK_401
+
+      CALL solver_RK4_algorithm
+      ! REF-> <<< system_solver >>>
+
+      GOTO 10101
+
+    END IF RK4_CHECK
+
+    AB4_CHECK:IF ( ( solver_alg .EQ. 'ab') )  THEN
+
+      CALL solver_AB4_algorithm
+      ! REF-> <<< system_solver >>>
+
+      CALL solver2_AB4_algorithm
+      ! REF-> <<< system_solver >>>
+
+      GOTO 10101
+
+    END IF AB4_CHECK
+    ! Updates v_x,v_y,v_z for next time step
+
+    10101 CONTINUE
+    ! Jumps straight out of loop to here.
+
+    decor_old = zero + 1.0E-16
+    CALL compute_decorrelator
+    ! REF-> <<< system_decorrelator >>>
+
+    decor_initial = decor
+
+    print*,"INITIAL DECORRELATION = ",decor_initial
+
+	END
 
   SUBROUTINE time_evolution
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -172,6 +249,10 @@ MODULE system_main
 
         CALL solver_RK4_algorithm
         ! REF-> <<< system_solver >>>
+
+        CALL solver2_RK4_algorithm
+        ! REF-> <<< system_solver >>>
+
         GOTO 10101
 
       END IF RK4_CHECK
@@ -180,6 +261,10 @@ MODULE system_main
 
         CALL solver_AB4_algorithm
         ! REF-> <<< system_solver >>>
+
+        CALL solver2_AB4_algorithm
+        ! REF-> <<< system_solver >>>
+
         GOTO 10101
 
       END IF AB4_CHECK
@@ -196,6 +281,10 @@ MODULE system_main
     ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
     !                    E     N     D
     ! 8888888888888888888888888888888888888888888888888888888888888888
+
+    decor_final = decor
+
+    print*,"FINAL DECORRELATION = ",decor_final
 
 	END
 
@@ -217,6 +306,21 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
+    CALL compute_decorrelator
+    ! REF-> <<< system_decorrelator >>>
+
+    CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
+    CALL compute_lyapunov_S
+    ! REF-> <<< system_decorrelator >>>
+
+    CALL compute_lyapunov_eta
+    ! REF-> <<< system_decorrelator >>>
+
+    CALL write_decorrelator_growth
+    ! REF-> <<< system_decorrelator >>>
+
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
       CALL compute_forcing_in_modes
@@ -225,7 +329,7 @@ MODULE system_main
     END IF FORCING_CHECK_401
 
     ! CALL write_section('sec_velX',u_x(0,:,:))
-    CALL write_section('sec_vorX',w_ux(0,:,:))
+    ! CALL write_section('sec_vorX',w_ux(0,:,:))
     ! REF-> <<< system_basicoutput >>>
 
     CALL write_temporal_data
@@ -233,10 +337,17 @@ MODULE system_main
 
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
+
     SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
+
+      CALL compute_pdf_lyapunov_S
+      ! REF-> <<< system_decorrelator >>>
+
+      CALL compute_pdf_lyapunov_eta
+      ! REF-> <<< system_decorrelator >>>
 
     END IF SAVE_DATA_CHECK
 
@@ -286,10 +397,7 @@ MODULE system_main
     ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
 
-    CALL compute_velocity_gradient
-    ! REF-> <<< system_advfunctions >>>
-
-    CALL compute_strain_tensor
+    ! CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
@@ -298,7 +406,7 @@ MODULE system_main
     ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_velocity
+    ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_velocity_unformatted
@@ -317,6 +425,12 @@ MODULE system_main
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver_system
+
+    CALL deallocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
+
+    ! CALL deallocate_decorrelator
+    ! REF-> <<< system_decorrelator >>>
 
     CALL deallocate_velocity
     ! REF-> <<< system_basicdeclaration >>>

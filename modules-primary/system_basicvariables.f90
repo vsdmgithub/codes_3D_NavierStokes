@@ -112,6 +112,7 @@ MODULE system_basicvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::axis                   ! 1D Grid
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u_x,u_y,u_z            ! Real velocity  (updated every time step)
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u2_x,u2_y,u2_z            ! Real velocity  (updated every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux,w_uy,w_uz         ! Real vorticity (updated every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz! Projection operators
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xy,proj_yz,proj_zx! \mathbb{P}_{ij}=\delta_{ij}-\frac{k_ik_j}{k^2}}
@@ -121,6 +122,7 @@ MODULE system_basicvariables
   INTEGER(KIND=4) ,DIMENSION(:,:,:),ALLOCATABLE ::shell_no                 ! Every grid has its modulus, |k|
   INTEGER(KIND=4) ,DIMENSION(:),    ALLOCATABLE ::fkx,fky,fkz              ! List of forcing wavevectors
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::v_x,v_y,v_z              ! Spectral velocity (updated every time step)
+  DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::v2_x,v2_y,v2_z              ! Spectral velocity (updated every time step)
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::w_vx,w_vy,w_vz           ! Spectral vorticity(updated every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z               ! Wavevector components
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_2                       ! Spectral laplacian factor
