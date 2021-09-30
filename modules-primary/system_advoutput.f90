@@ -30,7 +30,6 @@ MODULE system_advoutput
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_advdeclaration
-  USE system_basicoutput
 
   IMPLICIT NONE
 
@@ -87,7 +86,7 @@ MODULE system_advoutput
       WRITE(278,f_d32p17,ADVANCE ='YES') q_val( q_b )
     END DO
     CLOSE(278)
-    
+
     file_name = TRIM( ADJUSTL( file_address ) ) // 'R_bins.dat'
     OPEN( unit = 378, file = file_name )
     DO r_b = 1, r_bins

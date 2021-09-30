@@ -332,7 +332,7 @@ MODULE system_basicfunctions
       j_x = fkx( ct )
       j_y = fky( ct )
       j_z = fkz( ct )
-      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.5D0 * pre_factor_forcing ) * dt )
+      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.0D0 * pre_factor_forcing ) * dt )
     END DO LOOP_FORCING_MODES_302
 
   END

@@ -31,7 +31,6 @@ MODULE system_pvdoutput
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_VTR
   USE system_VTK
-  USE system_basicvariables
   USE system_advvariables
   USE system_basicoutput
 

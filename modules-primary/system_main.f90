@@ -343,6 +343,9 @@ MODULE system_main
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
 
+      CALL write_lyapunov
+      ! REF-> <<< system_decorrelator >>>
+
       CALL compute_pdf_lyapunov_S
       ! REF-> <<< system_decorrelator >>>
 

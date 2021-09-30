@@ -105,12 +105,12 @@ MODULE system_decorrelator
 
     IMPLICIT NONE
 
-    lyp_S     = ( ( u_x - u2_x )**two ) * s_xx + ( ( u_y - u2_y )**two ) * s_yy + ( ( u_z - u2_z )**two ) * s_zz + &
+    lyp_S     = -(  ( ( u_x - u2_x )**two ) * s_xx + ( ( u_y - u2_y )**two ) * s_yy + ( ( u_z - u2_z )**two ) * s_zz + &
               two * ( ( u_x - u2_x ) * s_xy * ( u_y - u2_y ) + &
                       ( u_y - u2_y ) * s_yz * ( u_z - u2_z ) + &
-                      ( u_z - u2_z ) * s_zx * ( u_x - u2_x ) )
+                      ( u_z - u2_z ) * s_zx * ( u_x - u2_x ) ) )
 
-    lyp_S_avg = - SUM( lyp_S ) / ( N3 * decor )
+    lyp_S_avg = SUM( lyp_S ) / ( N3 * decor )
 
   END
 
@@ -261,7 +261,7 @@ MODULE system_decorrelator
 
   END
 
-  SUBROUTINE write_lyapunov_S
+  SUBROUTINE write_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -270,7 +270,12 @@ MODULE system_decorrelator
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'lyapunov_S.dat'
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    file_name = TRIM( ADJUSTL( file_address ) ) // 'lyapunov_t_' &
+             // TRIM( ADJUSTL ( file_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  Lyapunov Scale
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -280,9 +285,10 @@ MODULE system_decorrelator
     DO i_x = 0 , N - 1
     DO i_y = 0 , N - 1
     DO i_z = 0 , N - 1
-
-      WRITE(4008,f_d32p17,ADVANCE ='yes') lyp_S( i_x, i_y, i_z )
-
+      DIFF_FIELD_CHECK: IF ( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
+        WRITE(4008,f_d32p17,ADVANCE ='no')  lyp_S(   i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
+        WRITE(4008,f_d32p17,ADVANCE ='yes') lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
+      END IF DIFF_FIELD_CHECK
     END DO
     END DO
     END DO
@@ -302,7 +308,7 @@ MODULE system_decorrelator
     IMPLICIT NONE
     INTEGER(KIND=4)::l_b,bin_count
 
-    lyp_S     = - ( lyp_S ) / ( diff_field + tol )
+    lyp_S     = ( lyp_S ) / ( diff_field )
 
     ! lyp_max = MAXVAL( lyp_S )
     ! lyp_min = MINVAL( lyp_S )
@@ -377,11 +383,13 @@ MODULE system_decorrelator
     DO i_x = 0 , N - 1
     DO i_y = 0 , N - 1
     DO i_z = 0 , N - 1
-      l_b            = CEILING( ( lyp_eta( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
-      BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
-        pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
-        bin_count      = bin_count + 1
-      END IF BIN_CHECK
+      DIFF_FIELD_CHECK_2: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
+        l_b            = CEILING( ( lyp_eta( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
+        BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
+          pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
+          bin_count      = bin_count + 1
+        END IF BIN_CHECK
+      END IF DIFF_FIELD_CHECK_2
     END DO
     END DO
     END DO
