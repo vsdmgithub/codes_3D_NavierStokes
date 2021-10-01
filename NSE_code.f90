@@ -60,6 +60,9 @@ USE system_timer
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  I  N  I  T  I  A  L  I  Z  A  T  I  O  N
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	 viscosity = 8.0D0
+	! viscosity = XXXXX
+
   CALL read_input
 	! REF-> <<< system_basicdeclaration >>>
 

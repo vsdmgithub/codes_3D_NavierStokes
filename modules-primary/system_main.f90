@@ -225,7 +225,7 @@ MODULE system_main
     END IF FORCING_CHECK_401
 
     ! CALL write_section('sec_velX',u_x(0,:,:))
-    CALL write_section('sec_vorX',w_ux(0,:,:))
+    ! CALL write_section('sec_vorX',w_ux(0,:,:))
     ! REF-> <<< system_basicoutput >>>
 
     CALL write_temporal_data
@@ -286,10 +286,10 @@ MODULE system_main
     ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
 
-    CALL compute_velocity_gradient
+    ! CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
-    CALL compute_strain_tensor
+    ! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
