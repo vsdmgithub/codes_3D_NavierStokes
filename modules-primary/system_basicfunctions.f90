@@ -228,8 +228,9 @@ MODULE system_basicfunctions
     helicity  = SUM( spectral_helicity(  : ) )
     ! Computes the net energy, enstrophy, helicity
 
-    diss_rate         = ( energy_old - energy ) / dt
-    energy_old        = energy
+    diss_rate         = - ( energy_old - energy ) / dt
+    energy_deviation  = - ( energy - energy_initial )
+    energy_old        =    energy
     ! Estimates the dissipation rate of energy
 
     diss_rate_viscous = two * viscosity * enstrophy
@@ -271,7 +272,7 @@ MODULE system_basicfunctions
 
     END DO LOOP_FORCING_MODES_301
 
-		pre_factor_forcing = diss_rate_viscous + diss_rate
+		pre_factor_forcing = diss_rate_viscous + 1.0D0 * energy_deviation / dt
     ! Matches with the visous dissipation
     ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
     ! decreasing, it would decrease the forcing.

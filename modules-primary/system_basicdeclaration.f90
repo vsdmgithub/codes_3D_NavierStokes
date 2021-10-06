@@ -164,7 +164,7 @@ MODULE system_basicdeclaration
     diss_rate_viscous = diss_rate_ref
     ! Assuming viscous dissipation as reference for start
 
-    cfl_min           = 6
+    cfl_min           = 10
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
@@ -177,8 +177,8 @@ MODULE system_basicdeclaration
     simulation_status = 0
     ! Meaning it is initializing , '1' means final, will be changed after the time_marching is DOne.
 
-    forcing_status    = 1
-    ! Tick that controls the forcing, 1 - YES, 0 - NO
+    forcing_status    = 2
+    ! Tick that controls the forcing, 2 - YES (KOL FORCING) 1 - YES (POPE FORCING), 0 - NO (DECAYING TURB)
 
     helicity_comp     = 0
     ! Tick that controls the computation of helicity, 1 - YES, 0 - NO
@@ -470,6 +470,26 @@ MODULE system_basicdeclaration
 
     END IF FORCING_CHECK_201
 
+    FORCING_CHECK_202: IF ( forcing_status .EQ. 2 ) THEN
+
+      tot_forced_modes = 2
+      ALLOCATE( fkx( tot_forced_modes ) )
+      ALLOCATE( fky( tot_forced_modes ) )
+      ALLOCATE( f_kol_x( tot_forced_modes ) )
+      ALLOCATE( f_kol_y( tot_forced_modes ) )
+
+        fkx( 1 )     = + 1
+        fky( 1 )     = + 1
+        f_kol_x( 1 ) = - i * qtr
+        f_kol_y( 1 ) = + i * qtr
+
+        fkx( 2 )     = + 1
+        fky( 2 )     = - 1
+        f_kol_x( 2 ) = - i * qtr
+        f_kol_y( 2 ) = - i * qtr
+
+    END IF FORCING_CHECK_202
+
   END
 
   SUBROUTINE allocate_operators
@@ -594,8 +614,8 @@ MODULE system_basicdeclaration
     ! DEALLOCATE(h_pos_x,h_pos_y,h_pos_z)
     ! DEALLOCATE(h_neg_x,h_neg_y,h_neg_z)
 
-    FORCING_CHECK_202: IF ( forcing_status .EQ. 1 ) THEN
-      DEALLOCATE(fkx,fky,fkz)
+    FORCING_CHECK_202: IF ( forcing_status .NE. 0 ) THEN
+      DEALLOCATE(fkx,fky)
     END IF FORCING_CHECK_202
 
 	END

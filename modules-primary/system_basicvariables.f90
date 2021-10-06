@@ -79,7 +79,7 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::energy_forcing_modes
   DOUBLE PRECISION ::diss_rate, diss_rate_viscous
   DOUBLE PRECISION ::energy
-  DOUBLE PRECISION ::energy_old
+  DOUBLE PRECISION ::energy_old,energy_deviation
   DOUBLE PRECISION ::helicity
   DOUBLE PRECISION ::k_dot_v_norm
   DOUBLE PRECISION ::enstrophy
@@ -122,6 +122,7 @@ MODULE system_basicvariables
   INTEGER(KIND=4) ,DIMENSION(:),    ALLOCATABLE ::fkx,fky,fkz              ! List of forcing wavevectors
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::v_x,v_y,v_z              ! Spectral velocity (updated every time step)
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::w_vx,w_vy,w_vz           ! Spectral vorticity(updated every time step)
+  DOUBLE COMPLEX  ,DIMENSION(:),    ALLOCATABLE ::f_kol_x,f_kol_y          ! Forcing strength in Kolmo forcing
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z               ! Wavevector components
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_2                       ! Spectral laplacian factor
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::truncator                 ! Truncating mask

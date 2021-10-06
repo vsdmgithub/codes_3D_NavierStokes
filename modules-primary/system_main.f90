@@ -216,6 +216,7 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
+! print*,"t=",time_now,"en=",energy,"v(1,1,0)",CDABS(v_x(1,1,0)),CDABS(v_y(1,1,0)),"v(1,-1,0)",CDABS(v_x(1,-1,0)),CDABS(v_y(1,-1,0))
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
@@ -298,7 +299,7 @@ MODULE system_main
     ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_velocity
+    ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_velocity_unformatted

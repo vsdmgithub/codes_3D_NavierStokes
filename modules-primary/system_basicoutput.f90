@@ -369,7 +369,7 @@ MODULE system_basicoutput
     WRITE(4004,f_d8p4,ADVANCE   ='no')  time_now
     WRITE(4004,f_d32p17,ADVANCE ='no')  energy
     WRITE(4004,f_d32p17,ADVANCE ='no')  helicity
-    WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate
+    ! WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate
     WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate_viscous
     WRITE(4004,f_d32p17,ADVANCE ='yes') enstrophy
 

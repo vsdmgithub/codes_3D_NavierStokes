@@ -39,6 +39,10 @@ MODULE system_solver
 	USE system_fftw
 
 	IMPLICIT NONE
+  ! _________________________
+  ! LOCAL VARIABLES
+  ! !!!!!!!!!!!!!!!!!!!!!!!!!
+  INTEGER(KIND=4)::ct
 	! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -122,20 +126,38 @@ MODULE system_solver
 		v_x_temp = v_x
 		v_y_temp = v_y
 		v_z_temp = v_z
-		CALL time_increment_RK1() ! This call provides \vec{dv} for the existing \vec{v}
-		v_x      = v_x_temp + hf * dv1_x
-		v_y      = v_y_temp + hf * dv1_y
-		v_z      = v_z_temp + hf * dv1_z
-		CALL time_increment_RK2()
-		v_x      = v_x_temp + hf * dv2_x
-		v_y      = v_y_temp + hf * dv2_y
-		v_z      = v_z_temp + hf * dv2_z
-		CALL time_increment_RK3()
-		v_x      = v_x_temp + dv3_x
-		v_y      = v_y_temp + dv3_y
-		v_z      = v_z_temp + dv3_z
-		CALL time_increment_RK4()
-		! Final increment for 'v(k)'
+
+		KOL_FORCING_CHECK: IF ( ( forcing_status .EQ. 2 ) .AND. ( energy_deviation .GT. zero ) ) THEN
+			CALL time_increment_RK1_KOL() ! This call provides \vec{dv} for the existing \vec{v}
+			v_x      = v_x_temp + hf * dv1_x
+			v_y      = v_y_temp + hf * dv1_y
+			v_z      = v_z_temp + hf * dv1_z
+			CALL time_increment_RK2_KOL()
+			v_x      = v_x_temp + hf * dv2_x
+			v_y      = v_y_temp + hf * dv2_y
+			v_z      = v_z_temp + hf * dv2_z
+			CALL time_increment_RK3_KOL()
+			v_x      = v_x_temp + dv3_x
+			v_y      = v_y_temp + dv3_y
+			v_z      = v_z_temp + dv3_z
+			CALL time_increment_RK4_KOL()
+			! Final increment for 'v(k)'
+		ELSE
+			CALL time_increment_RK1() ! This call provides \vec{dv} for the existing \vec{v}
+			v_x      = v_x_temp + hf * dv1_x
+			v_y      = v_y_temp + hf * dv1_y
+			v_z      = v_z_temp + hf * dv1_z
+			CALL time_increment_RK2()
+			v_x      = v_x_temp + hf * dv2_x
+			v_y      = v_y_temp + hf * dv2_y
+			v_z      = v_z_temp + hf * dv2_z
+			CALL time_increment_RK3()
+			v_x      = v_x_temp + dv3_x
+			v_y      = v_y_temp + dv3_y
+			v_z      = v_z_temp + dv3_z
+			CALL time_increment_RK4()
+			! Final increment for 'v(k)'
+		END IF KOL_FORCING_CHECK
 
 		v_x      = ( v_x_temp + ( dv1_x + two * dv2_x + two * dv3_x + dv4_x ) / six ) * integrating_factor
 		v_y      = ( v_y_temp + ( dv1_y + two * dv2_y + two * dv3_y + dv4_y ) / six ) * integrating_factor
@@ -228,6 +250,125 @@ MODULE system_solver
 
 	END
 
+	SUBROUTINE time_increment_RK1_KOL()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! the only difference is that it has constant forcing term (kolmogorov type)
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+
+		CALL vorticity_X_velocity
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
+		dv1_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+		dv1_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+		dv1_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+
+    LOOP_KOL_FORCING_MODES_801: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+			j_z = 0
+			dv1_x( j_x, j_y, j_z ) = dv1_x( j_x, j_y, j_z ) + f_kol_x( ct ) * dt
+			dv1_y( j_x, j_y, j_z ) = dv1_y( j_x, j_y, j_z ) + f_kol_y( ct ) * dt
+		END DO LOOP_KOL_FORCING_MODES_801
+
+	END
+
+	SUBROUTINE time_increment_RK2_KOL()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! the only difference is that it has constant forcing term (kolmogorov type)
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+
+		CALL vorticity_X_velocity
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
+		dv2_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+		dv2_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+		dv2_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+
+    LOOP_KOL_FORCING_MODES_802: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+			j_z = 0
+			dv2_x( j_x, j_y, j_z ) = dv2_x( j_x, j_y, j_z ) + f_kol_x( ct ) * dt
+			dv2_y( j_x, j_y, j_z ) = dv2_y( j_x, j_y, j_z ) + f_kol_y( ct ) * dt
+		END DO LOOP_KOL_FORCING_MODES_802
+
+	END
+
+	SUBROUTINE time_increment_RK3_KOL()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! the only difference is that it has constant forcing term (kolmogorov type)
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+
+		CALL vorticity_X_velocity
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
+		dv3_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+		dv3_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+		dv3_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+
+    LOOP_KOL_FORCING_MODES_803: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+			j_z = 0
+			dv3_x( j_x, j_y, j_z ) = dv3_x( j_x, j_y, j_z ) + f_kol_x( ct ) * dt
+			dv3_y( j_x, j_y, j_z ) = dv3_y( j_x, j_y, j_z ) + f_kol_y( ct ) * dt
+		END DO LOOP_KOL_FORCING_MODES_803
+
+	END
+
+	SUBROUTINE time_increment_RK4_KOL()
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'v(k)'
+	! This is the Navier-Stokes EQUATION implemented for numerical computation
+	! spectral space.
+	! the only difference is that it has constant forcing term (kolmogorov type)
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+
+		CALL vorticity_X_velocity
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R           E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
+		dv4_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+		dv4_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+		dv4_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+
+    LOOP_KOL_FORCING_MODES_804: DO ct = 1, tot_forced_modes
+      j_x = fkx( ct )
+      j_y = fky( ct )
+			j_z = 0
+			dv4_x( j_x, j_y, j_z ) = dv4_x( j_x, j_y, j_z ) + f_kol_x( ct ) * dt
+			dv4_y( j_x, j_y, j_z ) = dv4_y( j_x, j_y, j_z ) + f_kol_y( ct ) * dt
+		END DO LOOP_KOL_FORCING_MODES_804
+
+	END
 	SUBROUTINE vorticity_X_velocity
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
