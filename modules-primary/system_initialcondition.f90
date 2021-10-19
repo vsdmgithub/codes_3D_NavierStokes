@@ -406,7 +406,7 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::real_part,imag_part
-    CHARACTER(LEN=80)::IC_file_name
+    CHARACTER(LEN=200)::IC_file_name
 
     IC_type = 'INP-SPE'
 
@@ -455,14 +455,15 @@ MODULE system_initialcondition
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    CHARACTER(LEN=80)::IC_file_name
+    CHARACTER(LEN=200)::IC_file_name
 
     IC_type = 'INP-REA'
 
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    IC_file_name  = '../NSE_data/vel/velocity_' // TRIM( ADJUSTL( N_char ) ) // '.dat'
+    !IC_file_name  = '../NSE_data/vel/velocity_' // TRIM( ADJUSTL( N_char ) ) // '.dat'
+    IC_file_name  = '../data_NSE_steadystate/N256/run_EC/3D_data/velocity_256_t_10.0000.dat'
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

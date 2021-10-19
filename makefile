@@ -5,11 +5,13 @@ cc=gfortran
 
 # LIBRARY LOCATION
 #lb_lc= -I/home/sugan/fftw/include
-lb_lc= -I/home/coco/fftw/include
+#lb_lc= -I/home/coco/fftw/include
+lb_lc= -I/home/sugan.murugan/opt/fftw/3.3.8/include
 
 # LIBRARY FILE
-lb_fftw=-L/home/coco/fftw/lib -lfftw3 -lm
+#lb_fftw=-L/home/coco/fftw/lib -lfftw3 -lm
 #lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
+lb_fftw=-L/home/sugan.murugan/opt/fftw/3.3.8/lib -lfftw3 -lm
 
 # PROGRAM
 program=NSE_code.f90
@@ -63,7 +65,7 @@ obj=system_timer.o\
 	system_main.o
 
 # EXECUTABLE
-run=./ex
+run=./ex_ECCODE
 
 # CLEAN COMMANDS
 rmex=rm ex
@@ -96,9 +98,9 @@ ex:$(ob)
 	$(cc) -c $(advfunctions_mod)
 	$(cc) -c $(decor_mod)
 	$(cc) -c $(main_mod)
-	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
+	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex_ECCODE
 	$(mkcl)
-	$(run)
+	#$(run)
 
 #----------------------------end-------
 
@@ -110,4 +112,8 @@ clean:
 cl:
 	rm *.mod
 	rm *.o
+cl2:
+	rm *.err
+	rm *.out
+#----------------------------end-------
 #----------------------------end-------

@@ -343,7 +343,7 @@ MODULE system_main
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
 
-      CALL write_lyapunov
+      !CALL write_lyapunov
       ! REF-> <<< system_decorrelator >>>
 
       CALL compute_pdf_lyapunov_S
@@ -351,6 +351,9 @@ MODULE system_main
 
       CALL compute_pdf_lyapunov_eta
       ! REF-> <<< system_decorrelator >>>
+
+      CALL compute_dissipation
+      ! REF-> <<< system_advfunctions >>>
 
     END IF SAVE_DATA_CHECK
 
@@ -418,7 +421,7 @@ MODULE system_main
     ! CALL allocate_dissipation_field
     ! REF-> <<< system_advvariables >>>
 
-    ! CALL compute_dissipation_field
+    ! CALL compute_dissipation
     ! REF-> <<< system_advfunctions >>>
 
     ! CALL deallocate_dissipation_field

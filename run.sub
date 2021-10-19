@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Job name
+#SBATCH --job-name=ECCODE
+#
+# Set partition
+#SBATCH --partition=long
+#
+# STDOUT file; "N" is node number and "j" job id number
+#SBATCH --output=ECCODE_%N_%j.out
+# STDERR file; "N" is node number and "j" job id number
+#SBATCH --error=ECCODE_%N_%j.err
+#
+# Number of processes
+#SBATCH --ntasks=1
+# Memory requirement per CPU
+#SBATCH --mem-per-cpu=50G
+#
+# Total wall-time
+### SBATCH --time=00:05:00
+#
+# Uncomment to get email alert
+### SBATCH --mail-user=sugan.murugan@icts.res.in
+### SBATCH --mail-type=ALL
+
+date
+time ./ex_ECCODE
+date

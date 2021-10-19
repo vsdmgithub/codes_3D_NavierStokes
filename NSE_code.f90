@@ -63,6 +63,8 @@ USE system_timer
   CALL read_input
 	! REF-> <<< system_basicdeclaration >>>
 
+  viscosity = ECCODE ! this will be batched
+
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
 

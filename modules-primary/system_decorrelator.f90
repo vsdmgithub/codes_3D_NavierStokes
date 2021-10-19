@@ -37,7 +37,7 @@ MODULE system_decorrelator
   DOUBLE PRECISION::lyp_S_avg
   DOUBLE PRECISION::lyp_eta_avg
   DOUBLE PRECISION::decor_old,lyp_decor
-  INTEGER(KIND=4),PARAMETER ::lyp_bins=200
+  INTEGER(KIND=4),PARAMETER ::lyp_bins=300
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -285,10 +285,12 @@ MODULE system_decorrelator
     DO i_x = 0 , N - 1
     DO i_y = 0 , N - 1
     DO i_z = 0 , N - 1
+
       DIFF_FIELD_CHECK: IF ( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
         WRITE(4008,f_d32p17,ADVANCE ='no')  lyp_S(   i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
         WRITE(4008,f_d32p17,ADVANCE ='yes') lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
       END IF DIFF_FIELD_CHECK
+
     END DO
     END DO
     END DO
@@ -313,9 +315,14 @@ MODULE system_decorrelator
     ! lyp_max = MAXVAL( lyp_S )
     ! lyp_min = MINVAL( lyp_S )
 
-    ! FOllowing values are for N=128 . Rescale accordingly for different N
-    lyp_max = 40.0D0
-    lyp_min = -30.0D0
+    ! --------------------------------------------------------------------
+    ! Following values are for N=128 . Rescale accordingly for different N
+    ! --------------------------------------------------------------------
+    !lyp_max = 40.0D0
+    !lyp_min = -30.0D0
+
+    lyp_max     = +80.0D0
+    lyp_min     = -80.0D0
 
     lyp_binsize = ( lyp_max - lyp_min ) / lyp_bins
 
@@ -328,19 +335,26 @@ MODULE system_decorrelator
     pdf_lyp   = zero
     bin_count = 0
 
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
+    LOOP_RX_901: DO i_x = 0 , N - 1
+    LOOP_RY_901: DO i_y = 0 , N - 1
+    LOOP_RZ_901: DO i_z = 0 , N - 1
+
       l_b            = CEILING( ( lyp_S( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
-      BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
+      ! Finding the bin slot
+
+      BIN_CHECK_901: IF( l_b .LE. lyp_bins ) THEN
+
         pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
         bin_count      = bin_count + 1
-      END IF BIN_CHECK
-    END DO
-    END DO
-    END DO
+
+      END IF BIN_CHECK_901
+
+    END DO LOOP_RX_901
+    END DO LOOP_RY_901
+    END DO LOOP_RZ_901
 
     pdf_lyp = pdf_lyp / DBLE( bin_count )
+    ! Normalizing the PDF 
 
     CALL write_pdf_lyapunov_S
 
@@ -361,13 +375,14 @@ MODULE system_decorrelator
     ! lyp_max = MAXVAL( lyp_eta )
     ! lyp_min = MINVAL( lyp_eta )
 
-    ! FOllowing values are for N=128 . Rescale accordingly for different N
-    lyp_max = 60.0D0
-    lyp_min = -80.0D0
+    ! --------------------------------------------------------------------
+    ! Following values are for N=128 . Rescale accordingly for different N
+    ! --------------------------------------------------------------------
+    !lyp_max   = +60.0D0
+    !lyp_min   = -80.0D0
 
-    ! FOllowing values are for N=128 . Rescale accordingly for different N
-    ! lyp_max = 30.0D0
-    ! lyp_min = -20.0D0
+    lyp_max     = +150.0D0
+    lyp_min     = -150.0D0
 
     lyp_binsize = ( lyp_max - lyp_min ) / lyp_bins
 
@@ -380,23 +395,32 @@ MODULE system_decorrelator
     pdf_lyp   = zero
     bin_count = 0
 
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
+    LOOP_RX_902: DO i_x = 0 , N - 1
+    LOOP_RY_902: DO i_y = 0 , N - 1
+    LOOP_RZ_902: DO i_z = 0 , N - 1
+
       DIFF_FIELD_CHECK_2: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
+
         l_b            = CEILING( ( lyp_eta( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
+        ! Finding the bin slot
+
         BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
+
           pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
           bin_count      = bin_count + 1
+
         END IF BIN_CHECK
+
       END IF DIFF_FIELD_CHECK_2
-    END DO
-    END DO
-    END DO
+
+    END DO LOOP_RX_902
+    END DO LOOP_RY_902
+    END DO LOOP_RZ_902
 
     pdf_lyp = pdf_lyp / DBLE( bin_count )
 
     CALL write_pdf_lyapunov_eta
+    ! Normalizing the PDF 
 
   END
 

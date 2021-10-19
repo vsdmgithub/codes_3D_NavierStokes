@@ -147,7 +147,7 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXX
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
-    viscosity         = ( 128.0D0 / DBLE( N ) ) * 8.0D0 * 1.0E-3
+    viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
     ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256
     ! Viscosity of the system
 
@@ -205,6 +205,7 @@ MODULE system_basicdeclaration
     ! some error found during debug (could be either nan or incomp)
 
 	END
+
   SUBROUTINE compute_system_details
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------

@@ -30,13 +30,11 @@ MODULE system_advvariables
   ! _________________________
   ! VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  INTEGER(KIND=4)  :: q_b, r_b
-  INTEGER(KIND=4)  :: avg_b,dif_b
-  INTEGER(KIND=4)  :: avg_bins,dif_bins
-  INTEGER(KIND=4)  :: pdf_sz
-  INTEGER(KIND=4)  :: jump_sz
+  INTEGER(KIND=4)  :: ev_mod_bins,ev_dif_bins
   INTEGER(KIND=4)  :: q_bins, r_bins
-  DOUBLE PRECISION :: q_max, r_max
+  INTEGER(KIND=4)  :: ds_bins
+  INTEGER(KIND=4)  :: data_sz
+  INTEGER(KIND=4)  :: jump_sz
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -44,12 +42,14 @@ MODULE system_advvariables
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_QR
+  DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_qr
   DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_ev
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::pdf_ds
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ds_val
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::q_val,r_val
-  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_avg_val,ev_dif_val
-  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_avg,ev_dif
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::ds_rate
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_mod_val,ev_dif_val
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_mod,ev_dif
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::ds_rate                ! Dissipation field
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::q_invar,r_invar        ! Invariants of velocity gradient tensor
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xx,s_yy,s_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xy,s_yz,s_zx         ! Strain tensor

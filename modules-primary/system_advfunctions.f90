@@ -37,7 +37,7 @@ MODULE system_advfunctions
 
   CONTAINS
 
-  SUBROUTINE compute_dissipation_field
+  SUBROUTINE compute_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to
@@ -47,11 +47,84 @@ MODULE system_advfunctions
     IMPLICIT NONE
 
     ! CALL fft_c2r( -k_2 * v_x, -k_2 * v_y, -k_2 * v_z, N, Nh, w_ux, w_uy, w_uz )
+    
+    CALL allocate_dissipation
+    ! REF-> <<< system_advdeclaration >>>
 
-    ! ds_rate = w_ux**two + w_uy**two + w_uz**two
+    !ds_rate = w_ux ** two + w_uy ** two + w_uz ** two
+
+    ds_rate   = s_xx ** two + s_yy ** two + s_zz ** two +  two * ( s_xy ** two + s_yz ** two + s_zx ** two ) 
+    ds_rate   = two * viscosity * ds_rate
 
     ! CALL write_dissipation_field
     ! REF-> <<< system_advoutput >>>
+    
+    CALL compute_pdf_dissipation
+
+    CALL deallocate_dissipation
+    ! REF-> <<< system_advdeclaration >>>
+
+  END
+
+  SUBROUTINE compute_pdf_dissipation
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Find the pdf of dissipation distribution
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+    INTEGER(KIND=4) ::ds_b,bin_count
+    DOUBLE PRECISION::ds_max,ds_binsize
+
+    ds_max = MAXVAL( ds_rate )
+
+    ! --------------------------------------------------------------------
+    ! Following values are for N=128 . Rescale accordingly for different N
+    ! --------------------------------------------------------------------
+    !ds_max = +30.0D0
+    
+    ds_bins    = 200
+    ds_binsize = ds_max / ds_bins
+
+    ALLOCATE( ds_val( ds_bins ) )
+    ALLOCATE( pdf_ds( ds_bins ) )
+
+    DO ds_b = 1, ds_bins
+
+      ds_val( ds_b ) = DBLE( ds_b ) * ds_binsize
+
+    END DO
+
+    pdf_ds    = zero
+    bin_count = 0
+
+    LOOP_RX_702: DO i_x = 0 , N - 1
+    LOOP_RY_702: DO i_y = 0 , N - 1
+    LOOP_RZ_702: DO i_z = 0 , N - 1
+
+        ds_b            = CEILING( ( ds_rate( i_x, i_y, i_z ) ) / ds_binsize )
+        ! Finding the bin slot
+
+        BIN_CHECK: IF( ds_b .LE. ds_bins ) THEN
+
+          pdf_ds( ds_b ) = pdf_lyp( ds_b ) + one
+          bin_count      = bin_count + 1
+
+        END IF BIN_CHECK
+
+    END DO LOOP_RX_702
+    END DO LOOP_RY_702
+    END DO LOOP_RZ_702
+
+    pdf_ds = pdf_ds / DBLE( bin_count )
+    ! Normalizing the PDF 
+
+    CALL write_pdf_dissipation
+    ! REF-> <<< system_advoutput >>>
+    
+    DEALLOCATE( ds_val )
+    DEALLOCATE( pdf_ds )
 
   END
 
@@ -65,12 +138,13 @@ MODULE system_advfunctions
     IMPLICIT NONE
 
     CALL allocate_velocity_gradient
+    ! REF-> <<< system_advdeclaration >>>
 
     CALL fft_c2r( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, N, Nh, duxx, duxy, duxz )
     CALL fft_c2r( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, N, Nh, duyx, duyy, duyz )
     CALL fft_c2r( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, N, Nh, duzx, duzy, duzz )
 
-    CALL compute_invariant_QR
+    CALL compute_invariant_qr
 
     CALL write_section('q_inv',q_invar(0,:,:))
     ! REF-> <<< system_basicoutput >>>
@@ -104,7 +178,7 @@ MODULE system_advfunctions
 
   END
 
-  SUBROUTINE compute_invariant_QR
+  SUBROUTINE compute_invariant_qr
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the Q,R invariants of the velocity field.
@@ -126,13 +200,13 @@ MODULE system_advfunctions
               duzz ** thr + two * duzz * ( duxz * duzx + duyz * duzy ) + &
                                   duzx * ( duxy * duyz + duxx * duxz ) + &
                                   duzy * ( duzx * duyz + duyy * duyz )
-    r_invar = - ( 1.0D0/ thr ) * r_invar
+    r_invar = - ( onethird ) * r_invar
 
-    CALL compute_QR_pdf
+    CALL compute_qr_pdf
 
   END
 
-  SUBROUTINE compute_QR_pdf
+  SUBROUTINE compute_qr_pdf
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the histogram of Q-R plane
@@ -140,6 +214,11 @@ MODULE system_advfunctions
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)  :: q_b, r_b
+    DOUBLE PRECISION :: q_max, r_max
 
     FIND_Q_MAX: IF( ABS(MINVAL(q_invar)) .GT. ABS(MAXVAL(q_invar))) THEN
       q_max = ABS(MINVAL(q_invar))
@@ -155,9 +234,9 @@ MODULE system_advfunctions
 
     q_bins = 40
     r_bins = 40
-    ! No of bins on either side
+    ! No of bins for each invariant 
 
-    ALLOCATE(pdf_QR(q_bins,r_bins))
+    ALLOCATE(pdf_qr(q_bins,r_bins))
     ALLOCATE(q_val(q_bins))
     ALLOCATE(r_val(r_bins))
 
@@ -169,34 +248,32 @@ MODULE system_advfunctions
       r_val( r_b ) = -r_max + DBLE( r_b ) * ( two * r_max ) / r_bins
     END DO
 
-    pdf_QR  = 0.0D0
-    jump_sz = 4
-    pdf_sz  = INT( N / jump_sz ) ** 3
+    pdf_qr  = zero
 
-    DO i_x = 0 , N - 1, jump_sz
-    DO i_y = 0 , N - 1, jump_sz
-    DO i_z = 0 , N - 1, jump_sz
+    LOOP_RX_701: DO i_x = 0 , N - 1
+    LOOP_RY_701: DO i_y = 0 , N - 1
+    LOOP_RZ_701: DO i_z = 0 , N - 1
 
       q_b = FLOOR( q_bins * (q_invar( i_x, i_y, i_z ) + q_max ) / ( two * q_max ) )
       r_b = FLOOR( r_bins * (r_invar( i_x, i_y, i_z ) + r_max ) / ( two * r_max ) )
 
-      pdf_QR(q_b,r_b)  = pdf_QR(q_b,r_b) + 1.0D0
+      pdf_qr(q_b,r_b)  = pdf_qr(q_b,r_b) + 1.0D0
       ! Adding to the histogram frequency
 
-    END DO
-    END DO
-    END DO
+    END DO LOOP_RX_701
+    END DO LOOP_RY_701
+    END DO LOOP_RZ_701
 
-    ! pdf_QR = pdf_QR / pdf_sz
+    pdf_qr = pdf_qr / N3
     ! Getting the discrete bin pdf.
 
-    CALL write_QR_bins
+    CALL write_qr_bins
     ! REF <<< system_advoutput >>>
 
-    CALL write_QR_pdf
+    CALL write_qr_pdf
     ! REF <<< system_advoutput >>>
 
-    DEALLOCATE(pdf_QR)
+    DEALLOCATE(pdf_qr)
     DEALLOCATE(q_val)
     DEALLOCATE(r_val)
 
@@ -210,25 +287,29 @@ MODULE system_advfunctions
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
-
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND =4)               ::IT_NUM,ROT_NUM
     INTEGER(KIND =4)               ::i_pdf
+    INTEGER(KIND=4)                ::data_sz
+    INTEGER(KIND=4)                ::jump_sz
     DOUBLE PRECISION,DIMENSION(3,3)::str_mx,eig_vec
     DOUBLE PRECISION,DIMENSION(3)  ::eig_val
 
     jump_sz = 4
-    pdf_sz  = INT( N / jump_sz ) ** 3
+    data_sz = INT( N / jump_sz ) ** 3
     i_pdf   = 0
 
-    ALLOCATE( ev_avg( pdf_sz ) )
-    ALLOCATE( ev_dif( pdf_sz ) )
+    ALLOCATE( ev_mod( data_sz ) )
+    ALLOCATE( ev_dif( data_sz ) )
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   PDF angles
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DO i_x = 0 , N - 1 , jump_sz
-    DO i_y = 0 , N - 1 , jump_sz
-    DO i_z = 0 , N - 1 , jump_sz
+    LOOP_RX_703: DO i_x = 0 , N - 1, jump_sz
+    LOOP_RY_703: DO i_y = 0 , N - 1, jump_sz
+    LOOP_RZ_703: DO i_z = 0 , N - 1, jump_sz
     ! Not going over all grid points, jumping over 'jump_sz'. Since we are interested only in the distribution.
 
       i_pdf = i_pdf + 1
@@ -248,16 +329,16 @@ MODULE system_advfunctions
       CALL jacobi_eigenvalue(3,str_mx,4,eig_vec,eig_val,IT_NUM,ROT_NUM)
       ! This finds the eigenvalues and eigenvectors (unit normalized) for the strain tensor
 
-      ev_avg( i_pdf ) = DABS( eig_val(3) - eig_val(1) )
+      ev_mod( i_pdf ) = DABS( eig_val(3) - eig_val(1) )
       ev_dif( i_pdf ) = eig_val(2)
 
-     END DO
-     END DO
-     END DO
+     END DO LOOP_RX_703
+     END DO LOOP_RY_703
+     END DO LOOP_RZ_703
 
      CALL compute_eigenvalue_pdf
 
-     DEALLOCATE(ev_avg,ev_dif)
+     DEALLOCATE(ev_mod,ev_dif)
 
   END
 
@@ -270,10 +351,11 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
     INTEGER(KIND =4) :: i_pdf
-    DOUBLE PRECISION :: ev_avg_max,ev_dif_max
-    DOUBLE PRECISION :: avg_bin_size,dif_bin_size
+    DOUBLE PRECISION :: ev_mod_max,ev_dif_max
+    DOUBLE PRECISION :: ev_mod_bin_size,ev_dif_bin_size
+    INTEGER(KIND=4)  :: mod_b,dif_b
 
-    ev_avg_max = ABS(MAXVAL( ev_avg ))
+    ev_mod_max = ABS(MAXVAL( ev_mod ))
 
     FIND_EV_DIF_MAX: IF( ABS(MINVAL(ev_dif)) .GT. ABS(MAXVAL(ev_dif))) THEN
       ev_dif_max = ABS(MINVAL(ev_dif))
@@ -281,36 +363,37 @@ MODULE system_advfunctions
       ev_dif_max = ABS(MAXVAL(ev_dif))
     END IF FIND_EV_DIF_MAX
 
-    avg_bins = 60
-    dif_bins = 20
+    ev_mod_bins = 40
+    ev_dif_bins = 40
     ! No of bins on either side
 
-    avg_bin_size = one * ev_avg_max / avg_bins
-    dif_bin_size = two * ev_dif_max / dif_bins
+    ev_mod_bin_size = one * ev_mod_max / ev_mod_bins
+    ev_dif_bin_size = two * ev_dif_max / ev_dif_bins
 
-    ALLOCATE(pdf_ev(avg_bins,dif_bins))
-    ALLOCATE(ev_avg_val(avg_bins))
-    ALLOCATE(ev_dif_val(dif_bins))
+    ALLOCATE(pdf_ev(ev_mod_bins,ev_dif_bins))
+    ALLOCATE(ev_mod_val(ev_mod_bins))
+    ALLOCATE(ev_dif_val(ev_dif_bins))
 
-    DO avg_b = 1, avg_bins
-      ev_avg_val( avg_b ) = DBLE( avg_b ) * avg_bin_size
+    DO mod_b = 1, ev_mod_bins
+      ev_mod_val( mod_b ) = DBLE( mod_b ) * ev_mod_bin_size
     END DO
 
-    DO dif_b = 1, dif_bins
-      ev_dif_val( dif_b ) = -ev_dif_max + DBLE( dif_b ) * dif_bin_size
+    DO dif_b = 1, ev_dif_bins
+      ev_dif_val( dif_b ) = -ev_dif_max + DBLE( dif_b ) * ev_dif_bin_size
     END DO
 
-    pdf_ev = 0.0D0
+    pdf_ev = zero
 
-    LOOP_BINS: DO i_pdf = 1 , pdf_sz
-      avg_b               = FLOOR( ev_avg( i_pdf ) / avg_bin_size )
-      dif_b               = FLOOR( ( ev_dif( i_pdf ) + ev_dif_max ) / dif_bin_size )
+    LOOP_BINS: DO i_pdf = 1 , data_sz
+
+      mod_b               = FLOOR(                ev_avg( i_pdf )   / avg_bin_size )
+      dif_b               = FLOOR( ( ev_dif_max + ev_dif( i_pdf ) ) / dif_bin_size )
       pdf_ev(avg_b,dif_b) = pdf_ev(avg_b,dif_b) + 1.0D0
       ! Adding to the histogram frequency
 
     END DO LOOP_BINS
 
-    ! pdf_ev = pdf_ev / pdf_sz
+    pdf_ev = pdf_ev / data_sz
     ! Getting the discrete bin pdf.
 
     CALL write_ev_bins

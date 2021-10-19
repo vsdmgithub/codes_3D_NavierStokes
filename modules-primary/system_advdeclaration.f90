@@ -79,7 +79,7 @@ MODULE system_advdeclaration
 
   END
 
-  SUBROUTINE allocate_dissipation_field
+  SUBROUTINE allocate_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate dissipation field
@@ -132,7 +132,7 @@ MODULE system_advdeclaration
 
   END
 
-  SUBROUTINE deallocate_dissipation_field
+  SUBROUTINE deallocate_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to deallocate dissipation field

@@ -77,7 +77,8 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../NSE_data/'
+   ! path_dir    =   '../NSE_data/'
+    path_dir    =   '../data_NSE_eulerianchaos/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -92,10 +93,11 @@ MODULE system_basicoutput
     type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
-    CALL get_simulation_name(name_sim)
+    !CALL get_simulation_name(name_sim)
     ! Creating dated and timed name for the simulation for this particular type
+    ! REF:- <<< system_auxilaries >>>
 
-    ! name_sim    =   'test_sim'
+    name_sim    =   'run_EC'
     ! Use this to give CUSTOM SIMULATION NAME
 
     file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) //  &
