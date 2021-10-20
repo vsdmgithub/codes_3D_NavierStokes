@@ -148,7 +148,6 @@ MODULE system_basicdeclaration
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
     viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
-    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256
     ! Viscosity of the system
 
     k_int             = 5
@@ -177,7 +176,7 @@ MODULE system_basicdeclaration
     simulation_status = 0
     ! Meaning it is initializing , '1' means final, will be changed after the time_marching is DOne.
 
-    forcing_status    = 2
+    forcing_status    = 1
     ! Tick that controls the forcing, 2 - YES (KOL FORCING) 1 - YES (POPE FORCING), 0 - NO (DECAYING TURB)
 
     helicity_comp     = 0

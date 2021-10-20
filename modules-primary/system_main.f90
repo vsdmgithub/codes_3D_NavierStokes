@@ -299,7 +299,7 @@ MODULE system_main
     ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL write_velocity
+    CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_velocity_unformatted
