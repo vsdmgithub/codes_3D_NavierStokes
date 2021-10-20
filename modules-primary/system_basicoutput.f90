@@ -44,6 +44,7 @@ MODULE system_basicoutput
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
   CHARACTER(LEN =40) ::sub_dir_sp
+  CHARACTER(LEN =40) ::sub_dir_pdf
   CHARACTER(LEN =40) ::sub_dir
 
   CONTAINS
@@ -89,6 +90,9 @@ MODULE system_basicoutput
     sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
+    sub_dir_pdf =   'pdf/'
+    ! Sub directory name to store pdf
+
     type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
@@ -125,6 +129,8 @@ MODULE system_basicoutput
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) )
 
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error

@@ -29,7 +29,6 @@ MODULE system_advdeclaration
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_basicvariables
   USE system_advvariables
   USE system_basicfunctions
 
@@ -62,6 +61,7 @@ MODULE system_advdeclaration
     ALLOCATE(r_invar(0:N-1,0:N-1,0:N-1))
 
   END
+
   SUBROUTINE allocate_strain_tensor
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -79,7 +79,7 @@ MODULE system_advdeclaration
 
   END
 
-  SUBROUTINE allocate_dissipation_field
+  SUBROUTINE allocate_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate dissipation field
@@ -132,7 +132,7 @@ MODULE system_advdeclaration
 
   END
 
-  SUBROUTINE deallocate_dissipation_field
+  SUBROUTINE deallocate_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to deallocate dissipation field

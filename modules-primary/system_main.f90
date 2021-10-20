@@ -216,7 +216,6 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
-! print*,"t=",time_now,"en=",energy,"v(1,1,0)",CDABS(v_x(1,1,0)),CDABS(v_y(1,1,0)),"v(1,-1,0)",CDABS(v_x(1,-1,0)),CDABS(v_y(1,-1,0))
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
@@ -234,10 +233,23 @@ MODULE system_main
 
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
+
     SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
+
+      ! CALL allocate_dissipation
+      ! REF-> <<< system_advdeclaration >>>
+
+      CALL compute_dissipation
+      ! REF-> <<< system_advfunctions >>>
+
+      ! CALL compute_pdf_dissipation
+      ! REF-> <<< system_advfunctions >>>
+
+      ! CALL deallocate_dissipation
+      ! REF-> <<< system_advdeclaration >>>
 
     END IF SAVE_DATA_CHECK
 
@@ -287,13 +299,13 @@ MODULE system_main
     ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
 
-    ! CALL compute_velocity_gradient
+    CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
-    ! CALL compute_strain_tensor
+    CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
-    ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
     ! CALL write_spectral_velocity
@@ -304,15 +316,6 @@ MODULE system_main
 
     ! CALL write_velocity_unformatted
     ! REF-> <<< system_basicoutput >>>
-
-    ! CALL allocate_dissipation_field
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL compute_dissipation_field
-    ! REF-> <<< system_advfunctions >>>
-
-    ! CALL deallocate_dissipation_field
-    ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>

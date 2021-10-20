@@ -1,8 +1,7 @@
 # MAKEFILE FOR EULER
 
 # COMPILER
-cc=gfortran
-
+cc=gfortran -fbounds-check 
 # LIBRARY LOCATION
 #lb_lc= -I/home/sugan/fftw/include
 lb_lc= -I/home/coco/fftw/include
