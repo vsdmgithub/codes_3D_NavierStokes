@@ -35,6 +35,7 @@ MODULE system_advvariables
   INTEGER(KIND=4)  :: ds_bins
   INTEGER(KIND=4)  :: data_sz
   INTEGER(KIND=4)  :: jump_sz
+  DOUBLE PRECISION :: ds_avg, ds_std
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!

@@ -34,16 +34,17 @@ MODULE system_decorrelator
   IMPLICIT NONE
   DOUBLE PRECISION::decor,decor_initial,decor_final
   DOUBLE PRECISION::lyp_max,lyp_min,lyp_binsize
-  DOUBLE PRECISION::lyp_S_avg
-  DOUBLE PRECISION::lyp_eta_avg
+  DOUBLE PRECISION::lyp_str_avg,lyp_str_std,lyp_str_bar
+  DOUBLE PRECISION::lyp_eta_avg,lyp_eta_avg,lyp_eta_bar
+  DOUBLE PRECISION::ccrel_str_eta,ccrel_ds_lyp_eta,ccrel_ds_lyp_str
   DOUBLE PRECISION::decor_old,lyp_decor
-  INTEGER(KIND=4),PARAMETER ::lyp_bins=300
+  INTEGER(KIND=4),PARAMETER ::lyp_bins= ( N / 128 ) * 100
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::diff_field
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::lyp_S,lyp_eta
-  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::lyp_val,pdf_lyp
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::lyp_str,lyp_eta
+  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lyp_val,pdf_lyp
 
   CONTAINS
 
@@ -60,7 +61,7 @@ MODULE system_decorrelator
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(diff_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lyp_S(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(lyp_str(0:N-1,0:N-1,0:N-1))
     ALLOCATE(lyp_eta(0:N-1,0:N-1,0:N-1))
     ALLOCATE(lyp_val(lyp_bins),pdf_lyp(lyp_bins))
 
@@ -105,12 +106,12 @@ MODULE system_decorrelator
 
     IMPLICIT NONE
 
-    lyp_S     = -(  ( ( u_x - u2_x )**two ) * s_xx + ( ( u_y - u2_y )**two ) * s_yy + ( ( u_z - u2_z )**two ) * s_zz + &
+    lyp_str   = -(  ( ( u_x - u2_x )**two ) * s_xx + ( ( u_y - u2_y )**two ) * s_yy + ( ( u_z - u2_z )**two ) * s_zz + &
               two * ( ( u_x - u2_x ) * s_xy * ( u_y - u2_y ) + &
                       ( u_y - u2_y ) * s_yz * ( u_z - u2_z ) + &
                       ( u_z - u2_z ) * s_zx * ( u_x - u2_x ) ) )
 
-    lyp_S_avg = SUM( lyp_S ) / ( N3 * decor )
+    lyp_str_bar = SUM( lyp_str ) / ( N3 * decor )
 
   END
 
@@ -204,8 +205,7 @@ MODULE system_decorrelator
     END DO
     END DO
 
-    lyp_eta_avg = SUM( lyp_eta ) / ( N3 * decor )
-
+    lyp_eta_bar = SUM( lyp_eta ) / ( N3 * decor )
 
   END
 
@@ -222,7 +222,7 @@ MODULE system_decorrelator
     !  D E - A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE(diff_field)
-    DEALLOCATE(lyp_S)
+    DEALLOCATE(lyp_str)
     DEALLOCATE(lyp_eta)
     ! DEALLOCATE(lyp_val, pdf_lyp)
 
@@ -250,9 +250,9 @@ MODULE system_decorrelator
     WRITE(4002,f_d8p4,ADVANCE   ='no') time_now
     WRITE(4002,f_d32p17,ADVANCE ='no') decor
     WRITE(4002,f_d32p17,ADVANCE ='no') lyp_decor
-    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_eta_avg
-    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_S_avg
-    WRITE(4002,f_d32p17,ADVANCE ='yes')lyp_S_avg + lyp_eta_avg
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_eta_bar
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_str_bar
+    WRITE(4002,f_d32p17,ADVANCE ='yes')lyp_str_bar + lyp_eta_bar
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4002)
@@ -287,7 +287,7 @@ MODULE system_decorrelator
     DO i_z = 0 , N - 1
 
       DIFF_FIELD_CHECK: IF ( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
-        WRITE(4008,f_d32p17,ADVANCE ='no')  lyp_S(   i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
+        WRITE(4008,f_d32p17,ADVANCE ='no')  lyp_str( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
         WRITE(4008,f_d32p17,ADVANCE ='yes') lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
       END IF DIFF_FIELD_CHECK
 
@@ -307,22 +307,28 @@ MODULE system_decorrelator
   ! Find the pdf of lyp-S scales distribution
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)::l_b,bin_count
 
-    lyp_S     = ( lyp_S ) / ( diff_field )
+    lyp_str     = ( lyp_str ) / ( diff_field )
 
-    ! lyp_max = MAXVAL( lyp_S )
-    ! lyp_min = MINVAL( lyp_S )
+    lyp_str_avg = SUM( lyp_str ) / N3
+    lyp_str_std = DSQRT( SUM( lyp_str ** two ) / N3 - lyp_str_avg ** two )
+
+    ! lyp_max = MAXVAL( lyp_str )
+    ! lyp_min = MINVAL( lyp_str )
 
     ! --------------------------------------------------------------------
     ! Following values are for N=128 . Rescale accordingly for different N
     ! --------------------------------------------------------------------
-    !lyp_max = 40.0D0
-    !lyp_min = -30.0D0
+    !lyp_max = +40.0D0
+    !lyp_min = -40.0D0
 
-    lyp_max     = +80.0D0
-    lyp_min     = -80.0D0
+    lyp_max     = +40.0D0 * ( N / 128 )
+    lyp_min     = -40.0D0 * ( N / 128 )
 
     lyp_binsize = ( lyp_max - lyp_min ) / lyp_bins
 
@@ -339,7 +345,7 @@ MODULE system_decorrelator
     LOOP_RY_901: DO i_y = 0 , N - 1
     LOOP_RZ_901: DO i_z = 0 , N - 1
 
-      l_b            = CEILING( ( lyp_S( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
+      l_b            = CEILING( ( lyp_str( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
       ! Finding the bin slot
 
       BIN_CHECK_901: IF( l_b .LE. lyp_bins ) THEN
@@ -354,7 +360,7 @@ MODULE system_decorrelator
     END DO LOOP_RZ_901
 
     pdf_lyp = pdf_lyp / DBLE( bin_count )
-    ! Normalizing the PDF 
+    ! Normalizing the PDF
 
     CALL write_pdf_lyapunov_S
 
@@ -367,10 +373,13 @@ MODULE system_decorrelator
   ! Find the pdf of lyp-eta scales distribution
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
-    INTEGER(KIND=4)::l_b,bin_count
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4) ::l_b,bin_count,bin_count_2
 
-    lyp_eta = lyp_eta / ( diff_field + tol )
+    !lyp_eta = lyp_eta / ( diff_field + tol )
 
     ! lyp_max = MAXVAL( lyp_eta )
     ! lyp_min = MINVAL( lyp_eta )
@@ -378,11 +387,11 @@ MODULE system_decorrelator
     ! --------------------------------------------------------------------
     ! Following values are for N=128 . Rescale accordingly for different N
     ! --------------------------------------------------------------------
-    !lyp_max   = +60.0D0
-    !lyp_min   = -80.0D0
+    !lyp_max   = +75.0D0
+    !lyp_min   = -75.0D0
 
-    lyp_max     = +150.0D0
-    lyp_min     = -150.0D0
+    lyp_max     = +75.0D0 * ( N / 128 )
+    lyp_min     = -75.0D0 * ( N / 128 )
 
     lyp_binsize = ( lyp_max - lyp_min ) / lyp_bins
 
@@ -392,8 +401,11 @@ MODULE system_decorrelator
 
     END DO
 
-    pdf_lyp   = zero
-    bin_count = 0
+    pdf_lyp     = zero
+    lyp_eta_std = zero
+    lyp_eta_avg = zero
+    bin_count   = 0
+    bin_count_2 = 0
 
     LOOP_RX_902: DO i_x = 0 , N - 1
     LOOP_RY_902: DO i_y = 0 , N - 1
@@ -401,8 +413,14 @@ MODULE system_decorrelator
 
       DIFF_FIELD_CHECK_2: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
 
-        l_b            = CEILING( ( lyp_eta( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
+        lyp_eta( i_x, i_y, i_z ) = lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
+
+        l_b                      = CEILING( ( lyp_eta( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
         ! Finding the bin slot
+
+        lyp_eta_std              = lyp_eta_std + lyp_eta( i_x, i_y, i_z ) ** two
+        lyp_eta_avg              = lyp_eta_bar + lyp_eta( i_x, i_y, i_z )
+        bin_count_2              = bin_count_2 + 1
 
         BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
 
@@ -417,10 +435,15 @@ MODULE system_decorrelator
     END DO LOOP_RY_902
     END DO LOOP_RZ_902
 
-    pdf_lyp = pdf_lyp / DBLE( bin_count )
+    pdf_lyp     = pdf_lyp / DBLE( bin_count )
+
+    lyp_eta_std = lyp_eta_std / bin_count_2
+    lyp_eta_avg = lyp_eta_avg / bin_count_2
+
+    lyp_eta_std = DSQRT( lyp_eta_std - lyp_eta_avg ** two )
 
     CALL write_pdf_lyapunov_eta
-    ! Normalizing the PDF 
+    ! Normalizing the PDF
 
   END
 
@@ -431,13 +454,16 @@ MODULE system_decorrelator
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    IMPLICIT NONE
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)::l_b
 
     WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'lyp_S_pdf_' &
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'lyp_str_pdf_' &
               //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -464,13 +490,16 @@ MODULE system_decorrelator
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    IMPLICIT NONE
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)::l_b
 
     WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'lyp_eta_pdf' &
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'lyp_eta_pdf' &
               //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -488,6 +517,135 @@ MODULE system_decorrelator
     CLOSE(796)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  END
+
+  SUBROUTINE compute_cross_correlation
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! To find the cross correlation coefficient between dissipation field and strain lyapunov
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    ccrel_ds_lyp_str = SUM( ds_rate * lyp_str ) / N3
+    ccrel_ds_lyp_str = ( ccrel_ds_lyp_str - ds_avg * lyp_str_avg ) / ( ds_std * lyp_str_std )
+
+    ccrel_ds_lyp_eta = SUM( ds_rate * lyp_eta ) / N3
+    ccrel_ds_lyp_eta = ( ccrel_ds_lyp_eta - ds_avg * lyp_eta_avg ) / ( ds_std * lyp_eta_std )
+
+    ccrel_str_eta    = SUM( lyp_str * lyp_eta ) / N3
+    ccrel_str_eta    = ( ccrel_str_eta - lyp_str_avg * lyp_str ) / ( lyp_eta_std * lyp_str_std )
+
+    ! CALL write_extreme_events
+
+    CALL write_cross_correlation
+
+  END
+
+  SUBROUTINE write_extreme_events
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! To find the extreme dissipation points and the lyapunov timescales there
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)::event_count
+    DOUBLE PRECISION::ds_ratio
+    DOUBLE PRECISION::extremity_threshold
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  E X T R E M E    E V E N T    R E C O R D
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    extremity_threshold = two
+    event_count         = 0
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'extreme_events' &
+              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    OPEN( unit = 866, file = file_name )
+
+    LOOP_RX_908: DO i_x = 0 , N - 1
+    LOOP_RY_908: DO i_y = 0 , N - 1
+    LOOP_RZ_908: DO i_z = 0 , N - 1
+
+      ds_ratio            = ds_rate( i_x, i_y, i_z ) / ds_std
+
+      EXTREMITY_CHECK: IF( DABS( ds_ratio ) .GT. extremity_threshold ) THEN
+
+        event_count = event_count + 1
+        WRITE(866,f_d12p6,ADVANCE ='NO') ds_ratio
+        WRITE(866,f_d32p17,ADVANCE ='NO') lyp_str( i_x, i_y, i_z ) / lyp_str_bar
+        WRITE(866,f_d32p17,ADVANCE ='YES') lyp_eta( i_x, i_y, i_z ) / lyp_eta_bar
+
+      END IF EXTREMITY_CHECK
+
+    END DO LOOP_RX_908
+    END DO LOOP_RY_908
+    END DO LOOP_RZ_908
+
+    CLOSE(866)
+    print*,"PERCENTAGE OF EXTREME EVENTS ",100.0D0 * event_count / N3
+  END
+
+  SUBROUTINE write_cross_correlation
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! write the cross correlation data in time
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   C R O S S   C O R R E L A T I O N    V S    T I M E
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    IF ( t_step .EQ. 0 ) THEN
+      file_name = TRIM( ADJUSTL( file_address ) ) // 'cross_correlation.dat'
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      OPEN(unit = 4008, file = file_name )
+      ! File where energy vs time will be written. With additional data
+    END IF
+
+    WRITE(4008,f_d8p4,ADVANCE   ='no') time_now
+    WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_str
+    WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_eta
+    WRITE(4008,f_d32p17,ADVANCE ='yes') ccrel_str_eta
+
+    IF ( t_step .EQ. t_step_total ) THEN
+      CLOSE(4008)
+    END IF
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  S T A T I S T I C S
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    IF ( t_step .EQ. 0 ) THEN
+      file_name = TRIM( ADJUSTL( file_address ) ) // 'statistics.dat'
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      OPEN(unit = 4808, file = file_name )
+      ! File where energy vs time will be written. With additional data
+    END IF
+
+    WRITE(4808,f_d8p4,ADVANCE   ='no') time_now
+    WRITE(4808,f_d32p17,ADVANCE ='no') ds_avg
+    WRITE(4808,f_d32p17,ADVANCE ='no') lyp_str_avg
+    WRITE(4808,f_d32p17,ADVANCE ='no') lyp_eta_avg
+    WRITE(4808,f_d32p17,ADVANCE ='no') ds_std
+    WRITE(4808,f_d32p17,ADVANCE ='no') lyp_str_std
+    WRITE(4808,f_d32p17,ADVANCE ='yes') lyp_eta_std
+
+    IF ( t_step .EQ. t_step_total ) THEN
+      CLOSE(4808)
+    END IF
+    !  +++++++++
   END
 
 END MODULE system_decorrelator

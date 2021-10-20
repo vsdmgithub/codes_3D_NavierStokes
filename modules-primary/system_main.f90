@@ -128,6 +128,9 @@ MODULE system_main
       CALL allocate_strain_tensor
       ! REF-> <<< system_advdeclaration >>>
 
+      CALL allocate_dissipation
+      ! REF-> <<< system_advdeclaration >>>
+
       RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
 
         CALL prepare_output
@@ -318,7 +321,13 @@ MODULE system_main
     CALL compute_lyapunov_eta
     ! REF-> <<< system_decorrelator >>>
 
+    CALL compute_dissipation
+    ! REF-> <<< system_advfunctions >>>
+
     CALL write_decorrelator_growth
+    ! REF-> <<< system_decorrelator >>>
+
+    CALL compute_cross_correlation
     ! REF-> <<< system_decorrelator >>>
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
@@ -352,8 +361,11 @@ MODULE system_main
       CALL compute_pdf_lyapunov_eta
       ! REF-> <<< system_decorrelator >>>
 
-      CALL compute_dissipation
+      CALL compute_pdf_dissipation
       ! REF-> <<< system_advfunctions >>>
+
+      CALL write_extreme_events
+      ! REF-> <<< system_decorrelator >>>
 
     END IF SAVE_DATA_CHECK
 
@@ -418,15 +430,6 @@ MODULE system_main
     ! CALL write_velocity_unformatted
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL allocate_dissipation_field
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL compute_dissipation
-    ! REF-> <<< system_advfunctions >>>
-
-    ! CALL deallocate_dissipation_field
-    ! REF-> <<< system_advvariables >>>
-
     ! CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
@@ -435,7 +438,10 @@ MODULE system_main
     CALL deallocate_strain_tensor
     ! REF-> <<< system_advdeclaration >>>
 
-    ! CALL deallocate_decorrelator
+    CALL deallocate_dissipation
+    ! REF-> <<< system_advdeclaration >>>
+
+    CALL deallocate_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
     CALL deallocate_velocity

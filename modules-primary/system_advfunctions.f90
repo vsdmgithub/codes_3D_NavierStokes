@@ -46,22 +46,28 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
 
-    ! CALL fft_c2r( -k_2 * v_x, -k_2 * v_y, -k_2 * v_z, N, Nh, w_ux, w_uy, w_uz )
-    
-    CALL allocate_dissipation
+    ! CALL allocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
-    !ds_rate = w_ux ** two + w_uy ** two + w_uz ** two
+    ! -----------------------------------------
+    ! DIRECT NOTATION OF DISSIPATION FIELD
+    ! -----------------------------------------
+    CALL fft_c2r( -k_2 * v_x, -k_2 * v_y, -k_2 * v_z, N, Nh, w_ux, w_uy, w_uz )
+    ds_rate = viscosity * ( w_ux * u_x + w_uy * u_y + w_uz * u_z )
 
-    ds_rate   = s_xx ** two + s_yy ** two + s_zz ** two +  two * ( s_xy ** two + s_yz ** two + s_zx ** two ) 
-    ds_rate   = two * viscosity * ds_rate
+    ! -----------------------------------------
+    ! POSITIVE DEF NOTATION OF DISSIPATION FIELD
+    ! -----------------------------------------
+    ! ds_rate = s_xx ** two + s_yy ** two + s_zz ** two + two * ( s_xy ** two + s_yz ** two + s_zx ** two )
+    ! ds_rate = two * viscosity * ds_rate
+
+    ds_avg  = SUM( ds_rate ) / N3
+    ds_std  = DSQRT( SUM( ds_rate ** two ) / N3  - ds_avg ** two )
 
     ! CALL write_dissipation_field
     ! REF-> <<< system_advoutput >>>
-    
-    CALL compute_pdf_dissipation
 
-    CALL deallocate_dissipation
+    ! CALL deallocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
   END
@@ -73,18 +79,22 @@ MODULE system_advfunctions
   ! Find the pdf of dissipation distribution
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4) ::ds_b,bin_count
     DOUBLE PRECISION::ds_max,ds_binsize
 
     ds_max = MAXVAL( ds_rate )
+    print*,"Maximum dissipation is ",ds_max
 
     ! --------------------------------------------------------------------
     ! Following values are for N=128 . Rescale accordingly for different N
     ! --------------------------------------------------------------------
     !ds_max = +30.0D0
-    
-    ds_bins    = 200
+
+    ds_bins    = ( N / 128 ) * 100
     ds_binsize = ds_max / ds_bins
 
     ALLOCATE( ds_val( ds_bins ) )
@@ -118,11 +128,11 @@ MODULE system_advfunctions
     END DO LOOP_RZ_702
 
     pdf_ds = pdf_ds / DBLE( bin_count )
-    ! Normalizing the PDF 
+    ! Normalizing the PDF
 
     CALL write_pdf_dissipation
     ! REF-> <<< system_advoutput >>>
-    
+
     DEALLOCATE( ds_val )
     DEALLOCATE( pdf_ds )
 
@@ -202,11 +212,11 @@ MODULE system_advfunctions
                                   duzy * ( duzx * duyz + duyy * duyz )
     r_invar = - ( onethird ) * r_invar
 
-    CALL compute_qr_pdf
+    CALL compute_qr_joint_pdf
 
   END
 
-  SUBROUTINE compute_qr_pdf
+  SUBROUTINE compute_qr_joint_pdf
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the histogram of Q-R plane
@@ -232,9 +242,9 @@ MODULE system_advfunctions
       r_max = ABS(MAXVAL(r_invar))
     END IF FIND_R_MAX
 
-    q_bins = 40
-    r_bins = 40
-    ! No of bins for each invariant 
+    q_bins = ( N / 128 ) * 25
+    r_bins = ( N / 128 ) * 25
+    ! No of bins for each invariant
 
     ALLOCATE(pdf_qr(q_bins,r_bins))
     ALLOCATE(q_val(q_bins))
@@ -336,13 +346,13 @@ MODULE system_advfunctions
      END DO LOOP_RY_703
      END DO LOOP_RZ_703
 
-     CALL compute_eigenvalue_pdf
+     CALL compute_eigenvalue_joint_pdf
 
      DEALLOCATE(ev_mod,ev_dif)
 
   END
 
-  SUBROUTINE compute_eigenvalue_pdf
+  SUBROUTINE compute_eigenvalue_joint_pdf
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the histogram of eigenvalues in 2 dim
@@ -350,6 +360,9 @@ MODULE system_advfunctions
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND =4) :: i_pdf
     DOUBLE PRECISION :: ev_mod_max,ev_dif_max
     DOUBLE PRECISION :: ev_mod_bin_size,ev_dif_bin_size
@@ -363,8 +376,8 @@ MODULE system_advfunctions
       ev_dif_max = ABS(MAXVAL(ev_dif))
     END IF FIND_EV_DIF_MAX
 
-    ev_mod_bins = 40
-    ev_dif_bins = 40
+    ev_mod_bins = ( N / 128 ) * 25
+    ev_dif_bins = ( N / 128 ) * 25
     ! No of bins on either side
 
     ev_mod_bin_size = one * ev_mod_max / ev_mod_bins
@@ -396,10 +409,10 @@ MODULE system_advfunctions
     pdf_ev = pdf_ev / data_sz
     ! Getting the discrete bin pdf.
 
-    CALL write_ev_bins
+    CALL write_ev_joint_bins
     ! REF <<< system_advoutput >>>
 
-    CALL write_ev_pdf
+    CALL write_ev_joint_pdf
     ! REF <<< system_advoutput >>>
 
     DEALLOCATE(pdf_ev)
