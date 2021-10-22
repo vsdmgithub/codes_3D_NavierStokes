@@ -63,7 +63,8 @@ USE system_timer
   CALL read_input
 	! REF-> <<< system_basicdeclaration >>>
 
-  viscosity = ECCODE ! this will be batched
+  ! viscosity = ECCODE ! this will be batched
+	viscosity = 8.0D0 
 
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
@@ -102,7 +103,7 @@ USE system_timer
 			CALL prepare_perturbation
 			! Makes a copy and pertubs by one time step evolution with and without forcing for them.
 			! REF-> <<< system_main >>>
-			
+
       CALL time_evolution
       ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
 			! REF-> <<< system_main >>>

@@ -35,10 +35,11 @@ MODULE system_decorrelator
   DOUBLE PRECISION::decor,decor_initial,decor_final
   DOUBLE PRECISION::lyp_max,lyp_min,lyp_binsize
   DOUBLE PRECISION::lyp_str_avg,lyp_str_std,lyp_str_bar
-  DOUBLE PRECISION::lyp_eta_avg,lyp_eta_avg,lyp_eta_bar
-  DOUBLE PRECISION::ccrel_str_eta,ccrel_ds_lyp_eta,ccrel_ds_lyp_str
+  DOUBLE PRECISION::lyp_eta_avg,lyp_eta_std,lyp_eta_bar
+  DOUBLE PRECISION::ccrel_str_eta,ccrel_ds_lyp_eta
+  DOUBLE PRECISION::ccrel_ds_lyp_str,ccrel_lyp_str_vx_alp,ccrel_ds_vx_alp
   DOUBLE PRECISION::decor_old,lyp_decor
-  INTEGER(KIND=4),PARAMETER ::lyp_bins= ( N / 128 ) * 100
+  INTEGER(KIND=4) ::lyp_bins
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -57,6 +58,7 @@ MODULE system_decorrelator
 
     IMPLICIT NONE
 
+    lyp_bins = ( N / 128 ) * 100
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -92,7 +94,7 @@ MODULE system_decorrelator
     decor_old  = decor
     ! copying the old decorrelator
 
-    CALL write_section('decor',diff_field( 0, : , : ) )
+    ! CALL write_section('decor',diff_field( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
 
   END
@@ -355,9 +357,9 @@ MODULE system_decorrelator
 
       END IF BIN_CHECK_901
 
-    END DO LOOP_RX_901
-    END DO LOOP_RY_901
     END DO LOOP_RZ_901
+    END DO LOOP_RY_901
+    END DO LOOP_RX_901
 
     pdf_lyp = pdf_lyp / DBLE( bin_count )
     ! Normalizing the PDF
@@ -431,9 +433,9 @@ MODULE system_decorrelator
 
       END IF DIFF_FIELD_CHECK_2
 
-    END DO LOOP_RX_902
-    END DO LOOP_RY_902
     END DO LOOP_RZ_902
+    END DO LOOP_RY_902
+    END DO LOOP_RX_902
 
     pdf_lyp     = pdf_lyp / DBLE( bin_count )
 
@@ -535,7 +537,13 @@ MODULE system_decorrelator
     ccrel_ds_lyp_eta = ( ccrel_ds_lyp_eta - ds_avg * lyp_eta_avg ) / ( ds_std * lyp_eta_std )
 
     ccrel_str_eta    = SUM( lyp_str * lyp_eta ) / N3
-    ccrel_str_eta    = ( ccrel_str_eta - lyp_str_avg * lyp_str ) / ( lyp_eta_std * lyp_str_std )
+    ccrel_str_eta    = ( ccrel_str_eta - lyp_str_avg * lyp_eta_avg ) / ( lyp_eta_std * lyp_str_std )
+
+    ccrel_lyp_str_vx_alp = SUM( vx_alp * lyp_str ) / N3
+    ccrel_lyp_str_vx_alp = ( ccrel_lyp_str_vx_alp - lyp_str_avg * vx_alp_avg ) / ( lyp_str_std * vx_alp_std )
+
+    ccrel_ds_vx_alp  = SUM( ds_rate * vx_alp ) / N3
+    ccrel_ds_vx_alp  = ( ccrel_ds_vx_alp - ds_avg * vx_alp_avg ) / ( ds_std * vx_alp_std )
 
     ! CALL write_extreme_events
 
@@ -561,7 +569,7 @@ MODULE system_decorrelator
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  E X T R E M E    E V E N T    R E C O R D
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    extremity_threshold = two
+    extremity_threshold = 6.0D0
     event_count         = 0
     WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
@@ -581,18 +589,19 @@ MODULE system_decorrelator
       EXTREMITY_CHECK: IF( DABS( ds_ratio ) .GT. extremity_threshold ) THEN
 
         event_count = event_count + 1
-        WRITE(866,f_d12p6,ADVANCE ='NO') ds_ratio
+        WRITE(866,f_d32p17,ADVANCE ='NO') ds_ratio
         WRITE(866,f_d32p17,ADVANCE ='NO') lyp_str( i_x, i_y, i_z ) / lyp_str_bar
-        WRITE(866,f_d32p17,ADVANCE ='YES') lyp_eta( i_x, i_y, i_z ) / lyp_eta_bar
+        WRITE(866,f_d32p17,ADVANCE ='NO') lyp_eta( i_x, i_y, i_z ) / lyp_eta_bar
+        WRITE(866,f_d32p17,ADVANCE ='YES') vx_alp( i_x, i_y, i_z ) / vx_alp_avg
 
       END IF EXTREMITY_CHECK
 
-    END DO LOOP_RX_908
-    END DO LOOP_RY_908
     END DO LOOP_RZ_908
+    END DO LOOP_RY_908
+    END DO LOOP_RX_908
 
     CLOSE(866)
-    print*,"PERCENTAGE OF EXTREME EVENTS ",100.0D0 * event_count / N3
+
   END
 
   SUBROUTINE write_cross_correlation
@@ -614,10 +623,15 @@ MODULE system_decorrelator
       ! File where energy vs time will be written. With additional data
     END IF
 
-    WRITE(4008,f_d8p4,ADVANCE   ='no') time_now
-    WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_str
-    WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_eta
-    WRITE(4008,f_d32p17,ADVANCE ='yes') ccrel_str_eta
+    IF ( t_step .GT. 0 ) THEN
+      WRITE(4008,f_d8p4,ADVANCE   ='no') time_now
+      WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_str
+      WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_eta
+      WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_lyp_str_vx_alp
+      WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_vx_alp
+      WRITE(4008,f_d32p17,ADVANCE ='yes') ccrel_str_eta
+
+    END IF
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4008)

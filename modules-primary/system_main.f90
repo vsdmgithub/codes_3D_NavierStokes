@@ -205,7 +205,7 @@ MODULE system_main
     10101 CONTINUE
     ! Jumps straight out of loop to here.
 
-    decor_old = zero + 1.0E-16
+    decor_old = zero + tol_double
     CALL compute_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
@@ -355,18 +355,25 @@ MODULE system_main
       !CALL write_lyapunov
       ! REF-> <<< system_decorrelator >>>
 
-      CALL compute_pdf_lyapunov_S
-      ! REF-> <<< system_decorrelator >>>
+      IF ( t_step .GT. 0 ) THEN
 
-      CALL compute_pdf_lyapunov_eta
-      ! REF-> <<< system_decorrelator >>>
+        CALL compute_pdf_lyapunov_S
+        ! REF-> <<< system_decorrelator >>>
 
-      CALL compute_pdf_dissipation
-      ! REF-> <<< system_advfunctions >>>
+        CALL compute_pdf_lyapunov_eta
+        ! REF-> <<< system_decorrelator >>>
 
-      CALL write_extreme_events
-      ! REF-> <<< system_decorrelator >>>
+        CALL compute_pdf_dissipation
+        ! REF-> <<< system_advfunctions >>>
 
+        CALL compute_pdf_vortex_stretching
+        ! REF-> <<< system_advfunctions >>>
+
+        CALL write_extreme_events
+        ! REF-> <<< system_decorrelator >>>
+
+      END IF
+      
     END IF SAVE_DATA_CHECK
 
     SAVE_DATA_CHECK_3D:IF (MOD(t_step,t_step_3D_save) .EQ. 0) THEN

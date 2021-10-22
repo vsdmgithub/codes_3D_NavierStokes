@@ -67,6 +67,8 @@ MODULE system_advfunctions
     ! CALL write_dissipation_field
     ! REF-> <<< system_advoutput >>>
 
+    ! CALL compute_pdf_dissipation
+
     ! CALL deallocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
@@ -84,25 +86,27 @@ MODULE system_advfunctions
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4) ::ds_b,bin_count
-    DOUBLE PRECISION::ds_max,ds_binsize
+    DOUBLE PRECISION::ds_max,ds_min,ds_binsize
 
-    ds_max = MAXVAL( ds_rate )
-    print*,"Maximum dissipation is ",ds_max
+    ! ds_max = MAXVAL( ds_rate )
+    ! ds_min = MINVAL( ds_rate )
 
     ! --------------------------------------------------------------------
     ! Following values are for N=128 . Rescale accordingly for different N
+    ! Also these are for DIRECT NOTATION of dissipation field
     ! --------------------------------------------------------------------
-    !ds_max = +30.0D0
+    ds_max = ( N / 128 ) * (+3.0D0)
+    ds_min = ( N / 128 ) * (-20.0D0)
 
     ds_bins    = ( N / 128 ) * 100
-    ds_binsize = ds_max / ds_bins
+    ds_binsize = ( ds_max - ds_min ) / ds_bins
 
     ALLOCATE( ds_val( ds_bins ) )
     ALLOCATE( pdf_ds( ds_bins ) )
 
     DO ds_b = 1, ds_bins
 
-      ds_val( ds_b ) = DBLE( ds_b ) * ds_binsize
+      ds_val( ds_b ) = ds_min +  ( DBLE( ds_b ) - hf ) * ds_binsize
 
     END DO
 
@@ -113,19 +117,19 @@ MODULE system_advfunctions
     LOOP_RY_702: DO i_y = 0 , N - 1
     LOOP_RZ_702: DO i_z = 0 , N - 1
 
-        ds_b            = CEILING( ( ds_rate( i_x, i_y, i_z ) ) / ds_binsize )
-        ! Finding the bin slot
+      ds_b            = CEILING( ( ds_rate( i_x, i_y, i_z ) - ds_min + tol ) / ds_binsize )
+      ! Finding the bin slot
 
-        BIN_CHECK: IF( ds_b .LE. ds_bins ) THEN
+      BIN_CHECK: IF ( ( ds_b .LE. ds_bins ) .AND. ( ds_b .GE. 1 ) ) THEN
 
-          pdf_ds( ds_b ) = pdf_lyp( ds_b ) + one
-          bin_count      = bin_count + 1
+        pdf_ds( ds_b ) = pdf_ds( ds_b ) + one
+        bin_count      = bin_count + 1
 
-        END IF BIN_CHECK
+      END IF BIN_CHECK
 
-    END DO LOOP_RX_702
-    END DO LOOP_RY_702
     END DO LOOP_RZ_702
+    END DO LOOP_RY_702
+    END DO LOOP_RX_702
 
     pdf_ds = pdf_ds / DBLE( bin_count )
     ! Normalizing the PDF
@@ -156,13 +160,14 @@ MODULE system_advfunctions
 
     CALL compute_invariant_qr
 
-    CALL write_section('q_inv',q_invar(0,:,:))
+    ! CALL write_section('q_inv',q_invar(0,:,:))
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_section('r_inv',r_invar(0,:,:))
+    ! CALL write_section('r_inv',r_invar(0,:,:))
     ! REF-> <<< system_basicoutput >>>
 
     CALL deallocate_velocity_gradient
+    ! REF-> <<< system_advdeclaration >>>
 
   END
 
@@ -175,6 +180,9 @@ MODULE system_advfunctions
 
     IMPLICIT NONE
 
+    ! CALL allocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
+
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  T  R  A  I  N        T  E  N  S  O  R        C  A  L  C.
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -185,6 +193,102 @@ MODULE system_advfunctions
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL compute_eigenvalue_distribution
+
+    ! CALL deallocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
+
+    CALL compute_vortex_stretching
+
+  END
+
+  SUBROUTINE compute_vortex_stretching
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to compute the vortex stretching term
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    CALL compute_vorticity
+    ! REF-> <<< system_basicfunctions >>>
+
+    vx_alp   = s_xx * ( w_ux ** two ) + s_yy * ( w_uy ** two ) + s_zz * ( w_uz ** two ) + two * ( &
+               s_xy * w_ux * w_uy     + s_yz * w_uy * w_uz     + s_zx * w_uz * w_ux )
+
+    vx_alp   = vx_alp / ( w_ux ** two + w_uy ** two + w_uz ** two )
+
+    vx_alp_avg = SUM( vx_alp ) / N3
+
+    vx_alp_std = DSQRT( SUM( vx_alp ** two ) / N3 - vx_alp_avg ** two )
+
+  END
+
+  SUBROUTINE compute_pdf_vortex_stretching
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Find the pdf of vortex stretching parameter
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4) ::vx_b,bin_count
+    DOUBLE PRECISION::vx_max,vx_min,vx_binsize
+
+    vx_max = MAXVAL( vx_alp )
+    vx_min = MINVAL( vx_alp )
+
+    ! --------------------------------------------------------------------
+    ! Following values are for N=128 . Rescale accordingly for different N
+    ! Also these are for DIRECT NOTATION of dissipation field
+    ! --------------------------------------------------------------------
+    ! ds_max = ( N / 128 ) * (+3.0D0)
+    ! ds_min = ( N / 128 ) * (-20.0D0)
+
+    vx_bins    = ( N / 128 ) * 100
+    vx_binsize = ( vx_max - vx_min ) / vx_bins
+
+    ALLOCATE( vx_val( vx_bins ) )
+    ALLOCATE( pdf_vx( vx_bins ) )
+
+    DO vx_b = 1, vx_bins
+
+      vx_val( vx_b ) = vx_min +  ( DBLE( vx_b ) - hf ) * vx_binsize
+
+    END DO
+
+    pdf_vx    = zero
+    bin_count = 0
+
+    LOOP_RX_708: DO i_x = 0 , N - 1
+    LOOP_RY_708: DO i_y = 0 , N - 1
+    LOOP_RZ_708: DO i_z = 0 , N - 1
+
+      vx_b            = CEILING( ( vx_alp( i_x, i_y, i_z ) - vx_min + tol ) / vx_binsize )
+      ! Finding the bin slot
+
+      BIN_CHECK: IF ( ( vx_b .LE. vx_bins ) .AND. ( vx_b .GE. 1 ) ) THEN
+
+        pdf_vx( vx_b ) = pdf_vx( vx_b ) + one
+        bin_count      = bin_count + 1
+
+      END IF BIN_CHECK
+
+    END DO LOOP_RZ_708
+    END DO LOOP_RY_708
+    END DO LOOP_RX_708
+
+    pdf_vx = pdf_vx / DBLE( bin_count )
+    ! Normalizing the PDF
+
+    CALL write_pdf_vortex_stretching
+    ! REF-> <<< system_advoutput >>>
+
+    DEALLOCATE( vx_val )
+    DEALLOCATE( pdf_vx )
 
   END
 
@@ -228,19 +332,23 @@ MODULE system_advfunctions
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)  :: q_b, r_b
+    INTEGER(KIND=4)  :: bin_count
     DOUBLE PRECISION :: q_max, r_max
 
-    FIND_Q_MAX: IF( ABS(MINVAL(q_invar)) .GT. ABS(MAXVAL(q_invar))) THEN
-      q_max = ABS(MINVAL(q_invar))
-    ELSE
-      q_max = ABS(MAXVAL(q_invar))
-    END IF FIND_Q_MAX
+    ! FIND_Q_MAX: IF( ABS(MINVAL(q_invar)) .GT. ABS(MAXVAL(q_invar))) THEN
+    !   q_max = ABS(MINVAL(q_invar))
+    ! ELSE
+    !   q_max = ABS(MAXVAL(q_invar))
+    ! END IF FIND_Q_MAX
+    !
+    ! FIND_R_MAX: IF( ABS(MINVAL(r_invar)) .GT. ABS(MAXVAL(r_invar))) THEN
+    !   r_max = ABS(MINVAL(r_invar))
+    ! ELSE
+    !   r_max = ABS(MAXVAL(r_invar))
+    ! END IF FIND_R_MAX
 
-    FIND_R_MAX: IF( ABS(MINVAL(r_invar)) .GT. ABS(MAXVAL(r_invar))) THEN
-      r_max = ABS(MINVAL(r_invar))
-    ELSE
-      r_max = ABS(MAXVAL(r_invar))
-    END IF FIND_R_MAX
+    r_max = ( N / 128 ) * 300.0D0
+    q_max = ( N / 128 ) * 60.0D0
 
     q_bins = ( N / 128 ) * 25
     r_bins = ( N / 128 ) * 25
@@ -251,36 +359,40 @@ MODULE system_advfunctions
     ALLOCATE(r_val(r_bins))
 
     DO q_b = 1, q_bins
-      q_val( q_b ) = -q_max + DBLE( q_b ) * ( two * q_max ) / q_bins
+      q_val( q_b ) = -q_max + ( DBLE( q_b ) - hf ) * ( two * q_max ) / q_bins
     END DO
 
     DO r_b = 1, r_bins
-      r_val( r_b ) = -r_max + DBLE( r_b ) * ( two * r_max ) / r_bins
+      r_val( r_b ) = -r_max + ( DBLE( r_b ) - hf ) * ( two * r_max ) / r_bins
     END DO
 
-    pdf_qr  = zero
+    pdf_qr    = zero
+    bin_count = 0
 
     LOOP_RX_701: DO i_x = 0 , N - 1
     LOOP_RY_701: DO i_y = 0 , N - 1
     LOOP_RZ_701: DO i_z = 0 , N - 1
 
-      q_b = FLOOR( q_bins * (q_invar( i_x, i_y, i_z ) + q_max ) / ( two * q_max ) )
-      r_b = FLOOR( r_bins * (r_invar( i_x, i_y, i_z ) + r_max ) / ( two * r_max ) )
+      q_b = CEILING( q_bins * (q_invar( i_x, i_y, i_z ) + q_max  ) / ( two * q_max ) )
+      r_b = CEILING( r_bins * (r_invar( i_x, i_y, i_z ) + r_max  ) / ( two * r_max ) )
 
-      pdf_qr(q_b,r_b)  = pdf_qr(q_b,r_b) + 1.0D0
-      ! Adding to the histogram frequency
+      BIN_CHECK_QR: IF ( ( q_b .GE. 1) .AND. ( q_b .LE. q_bins ) .AND. ( r_b .GE. 1) .AND. ( r_b .LE. r_bins ) ) THEN
+        pdf_qr(q_b,r_b)  = pdf_qr(q_b,r_b) + 1.0D0
+        bin_count        = bin_count + 1
+        ! Adding to the histogram frequency
+      END IF BIN_CHECK_QR
 
-    END DO LOOP_RX_701
-    END DO LOOP_RY_701
     END DO LOOP_RZ_701
+    END DO LOOP_RY_701
+    END DO LOOP_RX_701
 
-    pdf_qr = pdf_qr / N3
+    pdf_qr = pdf_qr / DBLE( bin_count )
     ! Getting the discrete bin pdf.
 
-    CALL write_qr_bins
+    CALL write_qr_joint_pdf_bins
     ! REF <<< system_advoutput >>>
 
-    CALL write_qr_pdf
+    CALL write_qr_joint_pdf
     ! REF <<< system_advoutput >>>
 
     DEALLOCATE(pdf_qr)
@@ -302,8 +414,6 @@ MODULE system_advfunctions
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND =4)               ::IT_NUM,ROT_NUM
     INTEGER(KIND =4)               ::i_pdf
-    INTEGER(KIND=4)                ::data_sz
-    INTEGER(KIND=4)                ::jump_sz
     DOUBLE PRECISION,DIMENSION(3,3)::str_mx,eig_vec
     DOUBLE PRECISION,DIMENSION(3)  ::eig_val
 
@@ -339,12 +449,12 @@ MODULE system_advfunctions
       CALL jacobi_eigenvalue(3,str_mx,4,eig_vec,eig_val,IT_NUM,ROT_NUM)
       ! This finds the eigenvalues and eigenvectors (unit normalized) for the strain tensor
 
-      ev_mod( i_pdf ) = DABS( eig_val(3) - eig_val(1) )
+      ev_mod( i_pdf ) = DABS( eig_val(3) - eig_val(1) ) / two
       ev_dif( i_pdf ) = eig_val(2)
 
-     END DO LOOP_RX_703
-     END DO LOOP_RY_703
      END DO LOOP_RZ_703
+     END DO LOOP_RY_703
+     END DO LOOP_RX_703
 
      CALL compute_eigenvalue_joint_pdf
 
@@ -363,18 +473,21 @@ MODULE system_advfunctions
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    INTEGER(KIND =4) :: i_pdf
+    INTEGER(KIND =4) :: i_pdf, bin_count
     DOUBLE PRECISION :: ev_mod_max,ev_dif_max
     DOUBLE PRECISION :: ev_mod_bin_size,ev_dif_bin_size
     INTEGER(KIND=4)  :: mod_b,dif_b
 
-    ev_mod_max = ABS(MAXVAL( ev_mod ))
+    ! ev_mod_max = DABS(MAXVAL( ev_mod ))
 
-    FIND_EV_DIF_MAX: IF( ABS(MINVAL(ev_dif)) .GT. ABS(MAXVAL(ev_dif))) THEN
-      ev_dif_max = ABS(MINVAL(ev_dif))
-    ELSE
-      ev_dif_max = ABS(MAXVAL(ev_dif))
-    END IF FIND_EV_DIF_MAX
+    ! FIND_EV_DIF_MAX: IF( ABS(MINVAL(ev_dif)) .GT. ABS(MAXVAL(ev_dif))) THEN
+      ! ev_dif_max = DABS(MINVAL(ev_dif))
+    ! ELSE
+      ! ev_dif_max = DABS(MAXVAL(ev_dif))
+    ! END IF FIND_EV_DIF_MAX
+
+    ev_mod_max = ( N / 128 ) * 20.0D0
+    ev_dif_max = ( N / 128 ) * 4.0D0
 
     ev_mod_bins = ( N / 128 ) * 25
     ev_dif_bins = ( N / 128 ) * 25
@@ -388,35 +501,43 @@ MODULE system_advfunctions
     ALLOCATE(ev_dif_val(ev_dif_bins))
 
     DO mod_b = 1, ev_mod_bins
-      ev_mod_val( mod_b ) = DBLE( mod_b ) * ev_mod_bin_size
+      ev_mod_val( mod_b ) = ( DBLE( mod_b ) - hf ) * ev_mod_bin_size
     END DO
 
     DO dif_b = 1, ev_dif_bins
-      ev_dif_val( dif_b ) = -ev_dif_max + DBLE( dif_b ) * ev_dif_bin_size
+      ev_dif_val( dif_b ) = -ev_dif_max + ( DBLE( dif_b ) - hf ) * ev_dif_bin_size
     END DO
 
-    pdf_ev = zero
+    pdf_ev    = zero
+    bin_count = 0
 
     LOOP_BINS: DO i_pdf = 1 , data_sz
 
-      mod_b               = FLOOR(                ev_avg( i_pdf )   / avg_bin_size )
-      dif_b               = FLOOR( ( ev_dif_max + ev_dif( i_pdf ) ) / dif_bin_size )
-      pdf_ev(avg_b,dif_b) = pdf_ev(avg_b,dif_b) + 1.0D0
+      mod_b               = FLOOR(                ev_mod( i_pdf )   / ev_mod_bin_size )
+      dif_b               = FLOOR( ( ev_dif_max + ev_dif( i_pdf ) ) / ev_dif_bin_size )
+
+      BIN_CHECK_EV: IF ( ( mod_b .GE. 1) .AND. ( mod_b .LE. ev_mod_bins ) .AND. ( dif_b .GE. 1) &
+      .AND. ( dif_b .LE. ev_dif_bins ) ) THEN
+
+        pdf_ev(mod_b,dif_b) = pdf_ev(mod_b,dif_b) + 1.0D0
+        bin_count        = bin_count + 1
       ! Adding to the histogram frequency
+
+      END IF BIN_CHECK_EV
 
     END DO LOOP_BINS
 
-    pdf_ev = pdf_ev / data_sz
+    pdf_ev = pdf_ev / DBLE( bin_count )
     ! Getting the discrete bin pdf.
 
-    CALL write_ev_joint_bins
+    CALL write_ev_joint_pdf_bins
     ! REF <<< system_advoutput >>>
 
     CALL write_ev_joint_pdf
     ! REF <<< system_advoutput >>>
 
     DEALLOCATE(pdf_ev)
-    DEALLOCATE(ev_avg_val)
+    DEALLOCATE(ev_mod_val)
     DEALLOCATE(ev_dif_val)
 
   END

@@ -33,9 +33,11 @@ MODULE system_advvariables
   INTEGER(KIND=4)  :: ev_mod_bins,ev_dif_bins
   INTEGER(KIND=4)  :: q_bins, r_bins
   INTEGER(KIND=4)  :: ds_bins
+  INTEGER(KIND=4)  :: vx_bins
   INTEGER(KIND=4)  :: data_sz
   INTEGER(KIND=4)  :: jump_sz
   DOUBLE PRECISION :: ds_avg, ds_std
+  DOUBLE PRECISION :: vx_alp_avg,vx_alp_std
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -46,11 +48,14 @@ MODULE system_advvariables
   DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_qr
   DOUBLE PRECISION,DIMENSION(:,:),  ALLOCATABLE ::pdf_ev
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::pdf_ds
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::pdf_vx
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ds_val
+  DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::vx_val
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::q_val,r_val
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_mod_val,ev_dif_val
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::ev_mod,ev_dif
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::ds_rate                ! Dissipation field
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::vx_alp                 ! Vortex Stretching
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::q_invar,r_invar        ! Invariants of velocity gradient tensor
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xx,s_yy,s_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xy,s_yz,s_zx         ! Strain tensor

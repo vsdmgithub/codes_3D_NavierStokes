@@ -35,7 +35,7 @@ MODULE system_basicoutput
   ! _________________________
   ! OUTPUT VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER(LEN =140)::file_name
+  CHARACTER(LEN =180)::file_name
   CHARACTER(LEN =40) ::file_time
   CHARACTER(LEN =40) ::path_dir
   CHARACTER(LEN =40) ::type_sim
@@ -78,8 +78,8 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-   ! path_dir    =   '../NSE_data/'
-    path_dir    =   '../data_NSE_eulerianchaos/'
+   path_dir    =   '../NSE_data/'
+    ! path_dir    =   '../data_NSE_eulerianchaos/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -97,11 +97,12 @@ MODULE system_basicoutput
     type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
-    !CALL get_simulation_name(name_sim)
+    CALL get_simulation_name(name_sim)
     ! Creating dated and timed name for the simulation for this particular type
     ! REF:- <<< system_auxilaries >>>
 
-    name_sim    =   'run_EC'
+    ! name_sim    =   'run_EC'
+    ! name_sim    =   'run_V8'
     ! Use this to give CUSTOM SIMULATION NAME
 
     file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) //  &
@@ -273,49 +274,49 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    file_name = TRIM(ADJUSTL(file_address))//'system_end_details'
+    ! file_name = TRIM(ADJUSTL(file_address))//'system_end_details'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  I  M  U  L  A  T  I  O  N     D  E  T  A  I  L  S
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    OPEN(UNIT =233,FILE=TRIM( ADJUSTL( file_name ) ) // '.dat')
-
-    WRITE(233,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
-    WRITE(233,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
-    WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-    WRITE(233,*)
-    WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(233,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
-    WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(233,"(A20,A2,I8)")     'Resolution    ','= ',N
-    WRITE(233,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
-    WRITE(233,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
-    WRITE(233,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
-    WRITE(233,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
-    WRITE(233,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
-    WRITE(233,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
-    WRITE(233,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
-    WRITE(233,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
-    WRITE(233,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
-    WRITE(233,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
-    WRITE(233,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
-    WRITE(233,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
-    WRITE(233,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
-    WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
-    WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
-    WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
-    WRITE(233,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
-    WRITE(233,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
-    WRITE(233,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
-    WRITE(233,"(A20,A2,F8.4)")   'Final energy ','= ',energy
-    WRITE(233,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
-    WRITE(233,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
-    WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
-    WRITE(233,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
-    WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
-    WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-
-    CLOSE(233)
+    ! OPEN(UNIT =234,FILE=TRIM( ADJUSTL( file_name ) ) // '.dat')
+    !
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+    ! WRITE(234,*)
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    ! WRITE(234,"(A20,A2,I8)")     'Resolution    ','= ',N
+    ! WRITE(234,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
+    ! WRITE(234,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    ! WRITE(234,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    ! WRITE(234,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
+    ! WRITE(234,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
+    ! WRITE(234,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    ! WRITE(234,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    ! WRITE(234,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
+    ! WRITE(234,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
+    ! WRITE(234,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
+    ! WRITE(234,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
+    ! WRITE(234,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    ! WRITE(234,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
+    ! WRITE(234,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    ! WRITE(234,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    ! WRITE(234,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
+    ! WRITE(234,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    ! WRITE(234,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    ! WRITE(234,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
+    ! WRITE(234,"(A20,A2,F8.4)")   'Final energy ','= ',energy
+    ! WRITE(234,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
+    ! WRITE(234,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
+    ! WRITE(234,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
+    ! WRITE(234,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
+    ! WRITE(234,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    ! WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+    !
+    ! CLOSE(234)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
@@ -362,7 +363,7 @@ MODULE system_basicoutput
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
-
+    DOUBLE PRECISION::energy_2
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   E N E R G Y    V S    T I M E
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -373,8 +374,11 @@ MODULE system_basicoutput
       ! File where energy vs time will be written. With additional data
     END IF
 
+    energy_2 = hf * SUM( u2_x ** two + u2_y ** two + u2_z ** two ) / N3
+
     WRITE(4004,f_d8p4,ADVANCE   ='no')  time_now
     WRITE(4004,f_d32p17,ADVANCE ='no')  energy
+    WRITE(4004,f_d32p17,ADVANCE ='no')  energy_2
     WRITE(4004,f_d32p17,ADVANCE ='no')  helicity
     WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate
     WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate_viscous

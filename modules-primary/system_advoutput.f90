@@ -78,6 +78,10 @@ MODULE system_advoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)  :: q_b, r_b
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'Q_bins.dat'
 
@@ -106,6 +110,10 @@ MODULE system_advoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)  :: q_b, r_b
 
     WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
@@ -139,17 +147,21 @@ MODULE system_advoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)  :: mod_b,dif_b
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'EV_avg_bin.dat'
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'EV_mod_bin.dat'
     OPEN( unit = 279, file = file_name )
-    DO avg_b = 1, avg_bins
-      WRITE(279,f_d32p17,ADVANCE ='YES') ev_avg_val( avg_b )
+    DO mod_b = 1, ev_mod_bins
+      WRITE(279,f_d32p17,ADVANCE ='YES') ev_mod_val( mod_b )
     END DO
     CLOSE(279)
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'EV_dif_bin.dat'
     OPEN( unit = 379, file = file_name )
-    DO dif_b = 1, dif_bins
+    DO dif_b = 1, ev_dif_bins
       WRITE(379,f_d32p17,ADVANCE ='YES') ev_dif_val( dif_b )
     END DO
     CLOSE(379)
@@ -164,6 +176,10 @@ MODULE system_advoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)  :: mod_b,dif_b
 
     WRITE (file_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
@@ -176,10 +192,10 @@ MODULE system_advoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DO avg_b = 1, avg_bins
-    DO dif_b = 1, dif_bins
+    DO mod_b = 1, ev_mod_bins
+    DO dif_b = 1, ev_dif_bins
 
-      WRITE(779,f_d32p17,ADVANCE ='YES') pdf_ev( avg_b, dif_b )
+      WRITE(779,f_d32p17,ADVANCE ='YES') pdf_ev( mod_b, dif_b )
 
     END DO
     END DO
@@ -218,6 +234,39 @@ MODULE system_advoutput
     END DO
 
     CLOSE(759)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_pdf_vortex_stretching
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes the pdf of vortex stretching field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    INTEGER(KIND=4)::vx_b
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'vortex_str_pdf_' &
+              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    OPEN( unit = 779, file = file_name )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DO vx_b = 1, vx_bins
+
+      WRITE(779,f_d12p6,ADVANCE ='NO') vx_val( vx_b )
+      WRITE(779,f_d32p17,ADVANCE ='YES') pdf_vx( vx_b )
+
+    END DO
+
+    CLOSE(779)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END

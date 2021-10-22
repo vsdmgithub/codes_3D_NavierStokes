@@ -228,7 +228,7 @@ MODULE system_basicfunctions
     helicity  = SUM( spectral_helicity(  : ) )
     ! Computes the net energy, enstrophy, helicity
 
-    diss_rate         = ( energy_old - energy ) / dt
+    diss_rate         = ( energy_initial - energy ) / dt
     energy_old        = energy
     ! Estimates the dissipation rate of energy
 
@@ -263,18 +263,27 @@ MODULE system_basicfunctions
       energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_z( j_x, j_y, j_z ) ) ** two )
+      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v2_z( j_x, j_y, j_z ) ) ** two )
       ELSE
       energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      energy_forcing_modes = energy_forcing_modes +  CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v2_z( j_x, j_y, j_z ) ) ** two
       END IF KX_EQ_ZERO_CHECK
 
     END DO LOOP_FORCING_MODES_301
 
-		pre_factor_forcing = diss_rate_viscous + diss_rate
+    energy_forcing_modes = energy_forcing_modes / two
+
+		pre_factor_forcing   = diss_rate_viscous + diss_rate
     ! Matches with the visous dissipation
     ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
     ! decreasing, it would decrease the forcing.
+
     pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
 
     ! pre_factor_forcing = 0.710D0
@@ -332,7 +341,7 @@ MODULE system_basicfunctions
       j_x = fkx( ct )
       j_y = fky( ct )
       j_z = fkz( ct )
-      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.98D0 * pre_factor_forcing ) * dt )
+      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.90D0 * pre_factor_forcing ) * dt )
     END DO LOOP_FORCING_MODES_302
 
   END
