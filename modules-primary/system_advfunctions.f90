@@ -238,15 +238,15 @@ MODULE system_advfunctions
     INTEGER(KIND=4) ::vx_b,bin_count
     DOUBLE PRECISION::vx_max,vx_min,vx_binsize
 
-    vx_max = MAXVAL( vx_alp )
-    vx_min = MINVAL( vx_alp )
+    ! vx_max = MAXVAL( vx_alp )
+    ! vx_min = MINVAL( vx_alp )
 
     ! --------------------------------------------------------------------
     ! Following values are for N=128 . Rescale accordingly for different N
     ! Also these are for DIRECT NOTATION of dissipation field
     ! --------------------------------------------------------------------
-    ! ds_max = ( N / 128 ) * (+3.0D0)
-    ! ds_min = ( N / 128 ) * (-20.0D0)
+    vx_max = ( N / 128 ) * (+10.0D0)
+    vx_min = ( N / 128 ) * (-10.0D0)
 
     vx_bins    = ( N / 128 ) * 100
     vx_binsize = ( vx_max - vx_min ) / vx_bins
@@ -376,7 +376,7 @@ MODULE system_advfunctions
       q_b = CEILING( q_bins * (q_invar( i_x, i_y, i_z ) + q_max  ) / ( two * q_max ) )
       r_b = CEILING( r_bins * (r_invar( i_x, i_y, i_z ) + r_max  ) / ( two * r_max ) )
 
-      BIN_CHECK_QR: IF ( ( q_b .GE. 1) .AND. ( q_b .LE. q_bins ) .AND. ( r_b .GE. 1) .AND. ( r_b .LE. r_bins ) ) THEN
+      BIN_CHECK_QR: IF ( ( q_b .GE. 1 ) .AND. ( q_b .LE. q_bins ) .AND. ( r_b .GE. 1 ) .AND. ( r_b .LE. r_bins ) ) THEN
         pdf_qr(q_b,r_b)  = pdf_qr(q_b,r_b) + 1.0D0
         bin_count        = bin_count + 1
         ! Adding to the histogram frequency

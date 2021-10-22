@@ -211,7 +211,7 @@ MODULE system_main
 
     decor_initial = decor
 
-    print*,"INITIAL DECORRELATION = ",decor_initial
+    WRITE(*,"(A12,ES8.2)")'DECOR_INI:= ',decor_final
 
 	END
 
@@ -287,7 +287,7 @@ MODULE system_main
 
     decor_final = decor
 
-    print*,"FINAL DECORRELATION = ",decor_final
+    WRITE(*,"(A12,ES8.2)")'DECOR_FIN:= ',decor_final
 
 	END
 
@@ -373,7 +373,7 @@ MODULE system_main
         ! REF-> <<< system_decorrelator >>>
 
       END IF
-      
+
     END IF SAVE_DATA_CHECK
 
     SAVE_DATA_CHECK_3D:IF (MOD(t_step,t_step_3D_save) .EQ. 0) THEN
@@ -402,6 +402,8 @@ MODULE system_main
 
       CALL print_running_status
       ! REF-> <<< system_basicoutput >>>
+
+      WRITE(*,"(A8,ES8.2)")'DECOR:= ',decor
 
     END IF DEBUG
 

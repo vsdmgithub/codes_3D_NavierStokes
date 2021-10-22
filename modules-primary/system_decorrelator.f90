@@ -350,7 +350,7 @@ MODULE system_decorrelator
       l_b            = CEILING( ( lyp_str( i_x, i_y, i_z ) - lyp_min ) / lyp_binsize )
       ! Finding the bin slot
 
-      BIN_CHECK_901: IF( l_b .LE. lyp_bins ) THEN
+      BIN_CHECK_901: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
 
         pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
         bin_count      = bin_count + 1
@@ -424,12 +424,12 @@ MODULE system_decorrelator
         lyp_eta_avg              = lyp_eta_bar + lyp_eta( i_x, i_y, i_z )
         bin_count_2              = bin_count_2 + 1
 
-        BIN_CHECK: IF( l_b .LE. lyp_bins ) THEN
+        BIN_CHECK_904: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
 
           pdf_lyp( l_b ) = pdf_lyp( l_b ) + one
           bin_count      = bin_count + 1
 
-        END IF BIN_CHECK
+        END IF BIN_CHECK_904
 
       END IF DIFF_FIELD_CHECK_2
 
