@@ -68,6 +68,7 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::diss_rate_ref
   DOUBLE PRECISION ::force_factor
   DOUBLE PRECISION ::energy_initial
+  DOUBLE PRECISION ::decor_duplicate
   ! _________________________
   ! FLUID FUNCTIONS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!

@@ -72,6 +72,9 @@ MODULE system_advfunctions
     ! CALL deallocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
+    CALL write_section('ds_rate',ds_rate( 0, : , : ) )
+    ! REF <<< system_basicoutput >>>
+
   END
 
   SUBROUTINE compute_pdf_dissipation
@@ -221,6 +224,9 @@ MODULE system_advfunctions
     vx_alp_avg = SUM( vx_alp ) / N3
 
     vx_alp_std = DSQRT( SUM( vx_alp ** two ) / N3 - vx_alp_avg ** two )
+
+    CALL write_section('vx_alp',vx_alp( 0, : , : ) )
+    ! REF <<< system_basicoutput >>>
 
   END
 

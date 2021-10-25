@@ -211,7 +211,7 @@ MODULE system_main
 
     decor_initial = decor
 
-    WRITE(*,"(A12,ES8.2)")'DECOR_INI:= ',decor_final
+    WRITE(*,"(A22,ES8.2)")'DECOR_INITIAL:= ',decor_initial
 
 	END
 
@@ -287,7 +287,7 @@ MODULE system_main
 
     decor_final = decor
 
-    WRITE(*,"(A12,ES8.2)")'DECOR_FIN:= ',decor_final
+    WRITE(*,"(A22,ES8.2)")'DECOR_FINAL:= ',decor_final
 
 	END
 
@@ -325,6 +325,9 @@ MODULE system_main
     ! REF-> <<< system_advfunctions >>>
 
     CALL write_decorrelator_growth
+    ! REF-> <<< system_decorrelator >>>
+
+    CALL write_decorrelator_statistics
     ! REF-> <<< system_decorrelator >>>
 
     CALL compute_cross_correlation
@@ -402,8 +405,6 @@ MODULE system_main
 
       CALL print_running_status
       ! REF-> <<< system_basicoutput >>>
-
-      WRITE(*,"(A8,ES8.2)")'DECOR:= ',decor
 
     END IF DEBUG
 

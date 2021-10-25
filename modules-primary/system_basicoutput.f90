@@ -222,6 +222,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
     WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
     WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,ES8.2)")  'Initial decor   ','= ',decor_duplicate
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
@@ -349,6 +350,7 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
     WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
     WRITE(*,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
+    WRITE(*,"(A20,A2,ES8.2)")  'Final decor   ','= ',decor_duplicate
     WRITE(*,"(A20,A2,A8)")     'Final condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
@@ -634,14 +636,14 @@ MODULE system_basicoutput
 
     IF ( t_step .EQ. 0 ) THEN
 
-      WRITE(*,'(A75)') TRIM( ADJUSTL( '----------------------------------------------------------------------' ) )
-      WRITE(*,'(A75)') TRIM( ADJUSTL( '| TIME | ENERGY | ENSTROPHY | HELICITY | DISSIPATION | INCOMPRESSIBILITY |'  ) )
-      WRITE(*,'(A75)') TRIM( ADJUSTL( '----------------------------------------------------------------------' ) )
+      WRITE(*,'(A83)') TRIM( ADJUSTL( '----------------------------------------------------------------------------------' ) )
+      WRITE(*,'(A85)') TRIM( ADJUSTL( '| TIME | ENERGY |  DECOR  | ENSTROPHY | HELICITY | DISSIPATION | INCOMPRESSIBILITY |'  ) )
+      WRITE(*,'(A83)') TRIM( ADJUSTL( '----------------------------------------------------------------------------------' ) )
 
     END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    WRITE(*,'(F6.3,A3,F6.4,A3,F6.2,A5,F8.4,A5,F6.4,A5,E10.2)') time_now,'   ',energy,'   ',&
+    WRITE(*,'(F6.3,A3,F6.4,A3,E8.2,A3,F6.2,A5,F8.4,A5,F6.4,A5,E10.2)') time_now,'   ',energy,'   ',decor_duplicate,'   ',&
     enstrophy,'     ',helicity,'     ',diss_rate_viscous,'     ',k_dot_v_norm
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
