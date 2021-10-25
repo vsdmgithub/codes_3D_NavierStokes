@@ -96,7 +96,7 @@ MODULE system_decorrelator
 
     decor_duplicate = decor
     ! Copying it in duplicate variable to print in debug
-    
+
     CALL write_section('decor',diff_field( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
 
@@ -228,7 +228,7 @@ MODULE system_decorrelator
     LOOP_RY_908: DO i_y = 0 , N - 1
     LOOP_RZ_908: DO i_z = 0 , N - 1
 
-      DIFF_FIELD_CHECK_0: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
+      DIFF_FIELD_CHECK_0: IF( diff_field( i_x, i_y, i_z ) .GT. 0.01D0* tol_float ) THEN
 
         lyp_eta( i_x, i_y, i_z ) = lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
 
@@ -238,7 +238,7 @@ MODULE system_decorrelator
 
       ELSE
 
-        lyp_eta( i_x, i_y, i_z ) = zero
+        ! lyp_eta( i_x, i_y, i_z ) = zero
         bin_count_2              = bin_count_2 + 1
 
       END IF DIFF_FIELD_CHECK_0
@@ -250,7 +250,7 @@ MODULE system_decorrelator
     ! lyp_eta_avg = lyp_eta_avg / DBLE( bin_count_2 )
     ! lyp_eta_std = lyp_eta_std / DBLE( bin_count_2 )
     ! lyp_eta_std = DSQRT( lyp_eta_std - lyp_eta_avg ** two )
-    ! WRITE(*,"(A8,F6.4)")'Tot Per =',bin_count_2*100.0D0/N3
+    WRITE(*,"(A8,I8)")'Count =',bin_count_2
 
     lyp_eta_avg = SUM( lyp_eta ) / N3
     lyp_eta_std = DSQRT( SUM( lyp_eta ** two ) / N3 - lyp_eta_avg ** two )
@@ -558,20 +558,20 @@ MODULE system_decorrelator
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    ccrel_ds_lyp_str = SUM( ds_rate * lyp_str ) / N3
-    ccrel_ds_lyp_str = ( ccrel_ds_lyp_str - ds_avg * lyp_str_avg ) / ( ds_std * lyp_str_std )
+    ccrel_ds_lyp_str     = SUM( ds_rate * lyp_str ) / N3
+    ccrel_ds_lyp_str     = ( ccrel_ds_lyp_str - ds_avg * lyp_str_avg ) / ( ds_std * lyp_str_std )
 
-    ccrel_ds_lyp_eta = SUM( ds_rate * lyp_eta ) / N3
-    ccrel_ds_lyp_eta = ( ccrel_ds_lyp_eta - ds_avg * lyp_eta_avg ) / ( ds_std * lyp_eta_std )
+    ccrel_ds_lyp_eta     = SUM( ds_rate * lyp_eta ) / N3
+    ccrel_ds_lyp_eta     = ( ccrel_ds_lyp_eta - ds_avg * lyp_eta_avg ) / ( ds_std * lyp_eta_std )
 
-    ccrel_str_eta    = SUM( lyp_str * lyp_eta ) / N3
-    ccrel_str_eta    = ( ccrel_str_eta - lyp_str_avg * lyp_eta_avg ) / ( lyp_eta_std * lyp_str_std )
+    ccrel_str_eta        = SUM( lyp_str * lyp_eta ) / N3
+    ccrel_str_eta        = ( ccrel_str_eta - lyp_str_avg * lyp_eta_avg ) / ( lyp_eta_std * lyp_str_std )
 
     ccrel_lyp_str_vx_alp = SUM( vx_alp * lyp_str ) / N3
     ccrel_lyp_str_vx_alp = ( ccrel_lyp_str_vx_alp - lyp_str_avg * vx_alp_avg ) / ( lyp_str_std * vx_alp_std )
 
-    ccrel_ds_vx_alp  = SUM( ds_rate * vx_alp ) / N3
-    ccrel_ds_vx_alp  = ( ccrel_ds_vx_alp - ds_avg * vx_alp_avg ) / ( ds_std * vx_alp_std )
+    ccrel_ds_vx_alp      = SUM( ds_rate * vx_alp ) / N3
+    ccrel_ds_vx_alp      = ( ccrel_ds_vx_alp - ds_avg * vx_alp_avg ) / ( ds_std * vx_alp_std )
 
     ! CALL write_extreme_events
 
