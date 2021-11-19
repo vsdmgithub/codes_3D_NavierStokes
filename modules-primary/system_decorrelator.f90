@@ -123,7 +123,7 @@ MODULE system_decorrelator
     lyp_str_avg = SUM( lyp_str ) / N3
     lyp_str_std = DSQRT( SUM( lyp_str ** two ) / N3 - lyp_str_avg ** two )
 
-    CALL write_section('lyp_str',lyp_str( 0, : , : ) )
+    ! CALL write_section('lyp_str',lyp_str( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
   END
 
@@ -228,7 +228,7 @@ MODULE system_decorrelator
     LOOP_RY_908: DO i_y = 0 , N - 1
     LOOP_RZ_908: DO i_z = 0 , N - 1
 
-      DIFF_FIELD_CHECK_0: IF( diff_field( i_x, i_y, i_z ) .GT. 0.01D0* tol_float ) THEN
+      DIFF_FIELD_CHECK_0: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
 
         lyp_eta( i_x, i_y, i_z ) = lyp_eta( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
 
@@ -238,7 +238,7 @@ MODULE system_decorrelator
 
       ELSE
 
-        ! lyp_eta( i_x, i_y, i_z ) = zero
+        lyp_eta( i_x, i_y, i_z ) = zero
         bin_count_2              = bin_count_2 + 1
 
       END IF DIFF_FIELD_CHECK_0
@@ -250,12 +250,11 @@ MODULE system_decorrelator
     ! lyp_eta_avg = lyp_eta_avg / DBLE( bin_count_2 )
     ! lyp_eta_std = lyp_eta_std / DBLE( bin_count_2 )
     ! lyp_eta_std = DSQRT( lyp_eta_std - lyp_eta_avg ** two )
-    WRITE(*,"(A8,I8)")'Count =',bin_count_2
 
     lyp_eta_avg = SUM( lyp_eta ) / N3
     lyp_eta_std = DSQRT( SUM( lyp_eta ** two ) / N3 - lyp_eta_avg ** two )
 
-    CALL write_section('lyp_eta',lyp_eta( 0, : , : ) )
+    ! CALL write_section('lyp_eta',lyp_eta( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
   END
 
@@ -503,7 +502,7 @@ MODULE system_decorrelator
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DO l_b = 1, lyp_bins
 
-      WRITE(799,f_d12p6,ADVANCE ='NO') lyp_val( l_b )
+      WRITE(799,f_d12p6,ADVANCE ='NO') lyp_val( l_b ) / lyp_str_std
       WRITE(799,f_d32p17,ADVANCE ='YES') pdf_lyp( l_b )
 
     END DO
@@ -539,7 +538,7 @@ MODULE system_decorrelator
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DO l_b = 1, lyp_bins
 
-      WRITE(796,f_d12p6,ADVANCE ='NO') lyp_val( l_b )
+      WRITE(796,f_d12p6,ADVANCE ='NO') lyp_val( l_b ) / lyp_eta_std
       WRITE(796,f_d32p17,ADVANCE ='YES') pdf_lyp( l_b )
 
     END DO

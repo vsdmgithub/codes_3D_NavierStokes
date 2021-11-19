@@ -222,7 +222,6 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,F8.4)")   'Initial helicity ','= ',helicity
     WRITE(233,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_ref
     WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
-    WRITE(233,"(A20,A2,ES8.2)")  'Initial decor   ','= ',decor_duplicate
     WRITE(233,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
@@ -275,49 +274,49 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    ! file_name = TRIM(ADJUSTL(file_address))//'system_end_details'
+    file_name = TRIM(ADJUSTL(file_address))//'system_end_details'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  I  M  U  L  A  T  I  O  N     D  E  T  A  I  L  S
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ! OPEN(UNIT =234,FILE=TRIM( ADJUSTL( file_name ) ) // '.dat')
-    !
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-    ! WRITE(234,*)
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    ! WRITE(234,"(A20,A2,I8)")     'Resolution    ','= ',N
-    ! WRITE(234,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
-    ! WRITE(234,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
-    ! WRITE(234,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
-    ! WRITE(234,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
-    ! WRITE(234,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
-    ! WRITE(234,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
-    ! WRITE(234,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
-    ! WRITE(234,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
-    ! WRITE(234,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
-    ! WRITE(234,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
-    ! WRITE(234,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
-    ! WRITE(234,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
-    ! WRITE(234,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
-    ! WRITE(234,"(A20,A2,F8.4)")   'Total time ','= ',time_total
-    ! WRITE(234,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
-    ! WRITE(234,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
-    ! WRITE(234,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
-    ! WRITE(234,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
-    ! WRITE(234,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
-    ! WRITE(234,"(A20,A2,F8.4)")   'Final energy ','= ',energy
-    ! WRITE(234,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
-    ! WRITE(234,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
-    ! WRITE(234,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
-    ! WRITE(234,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
-    ! WRITE(234,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
-    ! WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
-    !
-    ! CLOSE(234)
+    OPEN(UNIT =234,FILE=TRIM( ADJUSTL( file_name ) ) // '.dat')
+
+    WRITE(234,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
+    WRITE(234,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+    WRITE(234,*)
+    WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    WRITE(234,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
+    WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
+    WRITE(234,"(A20,A2,I8)")     'Resolution    ','= ',N
+    WRITE(234,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
+    WRITE(234,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    WRITE(234,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
+    WRITE(234,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
+    WRITE(234,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
+    WRITE(234,"(A20,A2,I8)")     'Kolmo. Mode  ','= ',k_kol
+    WRITE(234,"(A20,A2,I8)")     'Forcing. Mode  ','= ',k_for
+    WRITE(234,"(A20,A2,I8)")     'Integral. Mode  ','= ',k_int
+    WRITE(234,"(A20,A2,F8.2)")   'Resolving power','= ',resolving_power
+    WRITE(234,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
+    WRITE(234,"(A20,A2,F8.6)")   'Grid time   ','= ',time_grid
+    WRITE(234,"(A20,A2,F8.6)")   'Kolmo. time  ','= ',time_kol
+    WRITE(234,"(A20,A2,F8.6)")   'Turbl time scale ','= ',time_tur
+    WRITE(234,"(A20,A2,F8.4)")   'Total time ','= ',time_total
+    WRITE(234,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
+    WRITE(234,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
+    WRITE(234,"(A20,A2,I8)")     'No of 3D saves ','= ',no_of_3D_saves
+    WRITE(234,"(A20,A2,F8.5)")   'Rms Velocity ','= ',u_rms
+    WRITE(234,"(A20,A2,F8.5)")   'Kol Velocity ','= ',u_kol
+    WRITE(234,"(A20,A2,F8.4)")   'Final energy ','= ',energy
+    WRITE(234,"(A20,A2,F8.4)")   'Final enstrophy ','= ',enstrophy
+    WRITE(234,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
+    WRITE(234,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
+    WRITE(234,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
+    WRITE(234,"(A20,A2,A8)")     'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
+
+    CLOSE(234)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
@@ -350,7 +349,6 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,F8.4)")   'Final helicity ','= ',helicity
     WRITE(*,"(A20,A2,F8.4)")   'Dissip(Approx)','= ',diss_rate_viscous
     WRITE(*,"(A20,A2,ES8.2)")  'Final comp   ','= ',k_dot_v_norm
-    WRITE(*,"(A20,A2,ES8.2)")  'Final decor   ','= ',decor_duplicate
     WRITE(*,"(A20,A2,A8)")     'Final condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))

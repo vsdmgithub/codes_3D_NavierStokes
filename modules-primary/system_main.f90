@@ -372,7 +372,7 @@ MODULE system_main
         CALL compute_pdf_vortex_stretching
         ! REF-> <<< system_advfunctions >>>
 
-        CALL write_extreme_events
+        ! CALL write_extreme_events
         ! REF-> <<< system_decorrelator >>>
 
       END IF
