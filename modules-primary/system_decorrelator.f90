@@ -686,6 +686,7 @@ MODULE system_decorrelator
       ! File where energy vs time will be written. With additional data
     END IF
 
+
     WRITE(4808,f_d8p4,ADVANCE   ='no') time_now
     WRITE(4808,f_d32p17,ADVANCE ='no') ds_avg
     WRITE(4808,f_d32p17,ADVANCE ='no') vx_alp_avg
