@@ -228,7 +228,7 @@ MODULE system_advoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DO ds_b = 1, ds_bins
 
-      WRITE(759,f_d12p6,ADVANCE ='NO') ds_val( ds_b ) / ds_std 
+      WRITE(759,f_d12p6,ADVANCE ='NO') ds_val( ds_b )!  / ds_std
       WRITE(759,f_d32p17,ADVANCE ='YES') pdf_ds( ds_b )
 
     END DO
@@ -261,7 +261,7 @@ MODULE system_advoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DO vx_b = 1, vx_bins
 
-      WRITE(779,f_d12p6,ADVANCE ='NO') vx_val( vx_b ) / vx_alp_std
+      WRITE(779,f_d12p6,ADVANCE ='NO') vx_val( vx_b ) ! / vx_alp_std
       WRITE(779,f_d32p17,ADVANCE ='YES') pdf_vx( vx_b )
 
     END DO

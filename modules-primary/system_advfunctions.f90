@@ -62,7 +62,7 @@ MODULE system_advfunctions
     ! ds_rate = two * viscosity * ds_rate
 
     ds_avg  = SUM( ds_rate ) / N3
-    ds_std  = DSQRT( SUM( ds_rate ** two ) / N3  - ds_avg ** two )
+    ! ds_std  = DSQRT( SUM( ds_rate ** two ) / N3  - ds_avg ** two )
 
     ! CALL write_dissipation_field
     ! REF-> <<< system_advoutput >>>
@@ -223,7 +223,7 @@ MODULE system_advfunctions
 
     vx_alp_avg = SUM( vx_alp ) / N3
 
-    vx_alp_std = DSQRT( SUM( vx_alp ** two ) / N3 - vx_alp_avg ** two )
+    ! vx_alp_std = DSQRT( SUM( vx_alp ** two ) / N3 - vx_alp_avg ** two )
 
     ! CALL write_section('vx_alp',vx_alp( 0, : , : ) )
     ! REF <<< system_basicoutput >>>

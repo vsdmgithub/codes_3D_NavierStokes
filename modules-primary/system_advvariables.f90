@@ -36,8 +36,10 @@ MODULE system_advvariables
   INTEGER(KIND=4)  :: vx_bins
   INTEGER(KIND=4)  :: data_sz
   INTEGER(KIND=4)  :: jump_sz
-  DOUBLE PRECISION :: ds_avg, ds_std
-  DOUBLE PRECISION :: vx_alp_avg,vx_alp_std
+  DOUBLE PRECISION :: ds_avg
+  DOUBLE PRECISION :: vx_alp_avg
+  ! DOUBLE PRECISION :: ds_std
+  ! DOUBLE PRECISION :: vx_alp_std
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!

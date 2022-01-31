@@ -147,8 +147,8 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXX
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
+    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256 ! THIS IS THE REFERENCE VISCOSITY 
     viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
-    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256
     ! Viscosity of the system
 
     k_int             = 5
@@ -171,7 +171,7 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug       = 5 
+    no_of_debug       = 5
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     simulation_status = 0

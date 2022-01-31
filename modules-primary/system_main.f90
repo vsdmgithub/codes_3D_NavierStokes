@@ -191,10 +191,24 @@ MODULE system_main
 
     AB4_CHECK:IF ( ( solver_alg .EQ. 'ab') )  THEN
 
-      CALL solver_AB4_algorithm
-      ! REF-> <<< system_solver >>>
+      FORCING_CHECK_404: IF ( forcing_status .EQ. 1 ) THEN
+
+        CALL compute_forcing_in_modes_with_perturbation
+        ! REF-> <<< system_basicfunctions >>>
+
+      END IF FORCING_CHECK_404
 
       CALL solver2_AB4_algorithm
+      ! REF-> <<< system_solver >>>
+
+      FORCING_CHECK_403: IF ( forcing_status .EQ. 1 ) THEN
+
+        CALL compute_forcing_in_modes
+        ! REF-> <<< system_basicfunctions >>>
+
+      END IF FORCING_CHECK_403
+
+      CALL solver_AB4_algorithm
       ! REF-> <<< system_solver >>>
 
       GOTO 10101
@@ -315,10 +329,10 @@ MODULE system_main
     CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
-    CALL compute_lyapunov_S
+    CALL compute_strainbased_lyapunov_and_timescales
     ! REF-> <<< system_decorrelator >>>
 
-    CALL compute_lyapunov_eta
+    CALL compute_diffusive_lyapunov_and_timescales
     ! REF-> <<< system_decorrelator >>>
 
     CALL compute_dissipation
@@ -330,7 +344,7 @@ MODULE system_main
     CALL write_decorrelator_statistics
     ! REF-> <<< system_decorrelator >>>
 
-    CALL compute_cross_correlation
+    ! CALL compute_cross_correlation
     ! REF-> <<< system_decorrelator >>>
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
@@ -355,15 +369,15 @@ MODULE system_main
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
 
-      !CALL write_lyapunov
+      !CALL write_lyapunov_field
+      ! REF-> <<< system_decorrelator >>>
+
+      !CALL write_timescales_field
       ! REF-> <<< system_decorrelator >>>
 
       IF ( t_step .GT. 0 ) THEN
 
-        CALL compute_pdf_lyapunov_S
-        ! REF-> <<< system_decorrelator >>>
-
-        CALL compute_pdf_lyapunov_eta
+        CALL compute_pdf_lyapunov_and_timescales
         ! REF-> <<< system_decorrelator >>>
 
         CALL compute_pdf_dissipation

@@ -78,8 +78,8 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-   path_dir    =   '../NSE_data/'
-    ! path_dir    =   '../data_NSE_eulerianchaos/'
+   ! path_dir    =   '../NSE_data/'
+    path_dir    =   '../NSE_data_eulerianchaos/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -192,6 +192,7 @@ MODULE system_basicoutput
 
     WRITE(233,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('-------------------EULERIAN CHAOS----------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
@@ -231,6 +232,7 @@ MODULE system_basicoutput
 
     WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------EULERIAN CHAOS----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(*,*)
@@ -283,6 +285,7 @@ MODULE system_basicoutput
 
     WRITE(234,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
     WRITE(234,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(233,"(A50)")TRIM(ADJUSTL('-------------------EULERIAN CHAOS----------------'))
     WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(234,*)
     WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
@@ -291,6 +294,8 @@ MODULE system_basicoutput
     WRITE(234,"(A20,A2,I8)")     'Resolution    ','= ',N
     WRITE(234,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
     WRITE(234,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    WRITE(234,"(A20,A2,ES8.2)")  'Initial Decor ','= ',decor_initial
+    WRITE(234,"(A20,A2,ES8.2)")  'Final Decor ','= ',decor_final
     WRITE(234,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
     WRITE(234,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
     WRITE(234,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
@@ -321,12 +326,15 @@ MODULE system_basicoutput
 
     WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------------------------------------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('------3D NSE EQUATION (INCOMPRESSIBLE)--------------'))
+    WRITE(*,"(A50)")TRIM(ADJUSTL('-------------------EULERIAN CHAOS----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(*,*)
     WRITE(*,"(A20,A2,I8)")     'Resolution    ','= ',N
     WRITE(*,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
     WRITE(*,"(A20,A2,ES8.2)")  'Viscosity   ','= ',viscosity
+    WRITE(*,"(A20,A2,ES8.2)")  'Initial Decor ','= ',decor_initial
+    WRITE(*,"(A20,A2,ES8.2)")  'Final Decor ','= ',decor_final
     WRITE(*,"(A20,A2,I8)")     'Reynolds ','= ',rey_no
     WRITE(*,"(A20,A2,I8)")     'Taylor-Reynolds ','= ',tay_rey_no
     WRITE(*,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
@@ -641,7 +649,7 @@ MODULE system_basicoutput
     END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    WRITE(*,'(F6.3,A3,F6.4,A3,E8.2,A3,F6.2,A5,F8.4,A5,F6.4,A5,E10.2)') time_now,'   ',energy,'   ',decor_duplicate,'   ',&
+    WRITE(*,'(F6.3,A3,F6.4,A3,E8.2,A3,F6.2,A5,F8.4,A5,F6.4,A5,E10.2)') time_now,'   ',energy,'   ',decor,'   ',&
     enstrophy,'     ',helicity,'     ',diss_rate_viscous,'     ',k_dot_v_norm
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

@@ -462,7 +462,7 @@ MODULE system_initialcondition
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    IC_file_name  = '../NSE_data/vel/velocity_N' // TRIM( ADJUSTL( N_char ) ) // '_V8.dat'
+    IC_file_name  = '../vel/velocity_N' // TRIM( ADJUSTL( N_char ) ) // '_V8.dat'
     ! IC_file_name  = '../data_NSE_steadystate/N256/run_EC/3D_data/velocity_256_t_10.0000.dat'
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
