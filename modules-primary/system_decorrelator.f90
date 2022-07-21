@@ -44,6 +44,7 @@ MODULE system_decorrelator
   DOUBLE PRECISION::lam_str_binsize,lam_eta_binsize
   ! DOUBLE PRECISION::ccrel_str_eta,ccrel_ds_lyp_eta
   ! DOUBLE PRECISION::ccrel_ds_lyp_str,ccrel_lyp_str_vx_alp,ccrel_ds_vx_alp
+  INTEGER(KIND=4) ::m_ind,m_size
   INTEGER(KIND=4) ::lyp_bins
   INTEGER(KIND=4) ::lyp_str_bin_count,lyp_eta_bin_count
   INTEGER(KIND=4) ::lam_str_bin_count,lam_eta_bin_count
@@ -57,6 +58,7 @@ MODULE system_decorrelator
   DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lyp_eta_val,pdf_lyp_eta
   DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lam_str_val,pdf_lam_str
   DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lam_eta_val,pdf_lam_eta
+  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::m_val,gen_decor
 
   CONTAINS
 
@@ -82,6 +84,13 @@ MODULE system_decorrelator
     ALLOCATE(lyp_eta_val(lyp_bins),pdf_lyp_eta(lyp_bins))
     ALLOCATE(lam_str_val(lyp_bins),pdf_lam_str(lyp_bins))
     ALLOCATE(lam_eta_val(lyp_bins),pdf_lam_eta(lyp_bins))
+
+    m_size = 20
+    ALLOCATE(gen_decor(m_size),m_val(m_size))
+
+    DO m_ind = 1,m_size
+      m_val( m_ind )            = zero + DBLE( m_ind ) * 0.4D0
+    END DO
 
   END
 
@@ -112,6 +121,31 @@ MODULE system_decorrelator
 
     CALL write_section('decor',diff_field( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
+
+    CALL compute_generalized_decorrelator
+
+  END
+
+  SUBROUTINE compute_generalized_decorrelator
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Find the generalized exponents L(q)
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  IMPLICIT NONE
+
+    !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  G E N E R A L I Z E D        D E C O R R E L A T O R
+    !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    LOOP_MOMENTS: DO m_ind = 1, m_size
+
+      gen_decor( m_ind ) = SUM( ( diff_field ) ** ( hf * m_val( m_ind ) ) ) / N3
+
+    END DO LOOP_MOMENTS
+
+    CALL write_generalized_decorrelator_growth
+    ! Writes all the generalized decorrelators
 
   END
 
@@ -281,6 +315,7 @@ MODULE system_decorrelator
     DEALLOCATE(lyp_eta_val, pdf_lyp_eta)
     DEALLOCATE(lam_str_val, pdf_lam_str)
     DEALLOCATE(lam_eta_val, pdf_lam_eta)
+    DEALLOCATE(m_val,gen_decor)
 
   END
 
@@ -300,7 +335,6 @@ MODULE system_decorrelator
       file_name = TRIM( ADJUSTL( file_address ) ) // 'decor_growth.dat'
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       OPEN(unit = 4002, file = file_name )
-      ! File where energy vs time will be written. With additional data
     END IF
 
     lyp_str_avg = SUM(lyp_str_field) / N3
@@ -314,6 +348,53 @@ MODULE system_decorrelator
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4002)
+    END IF
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_generalized_decorrelator_growth
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! write the data in time, for every timestep
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  G E N .   D E C O R    V S    T I M E
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    IF ( t_step .EQ. 0 ) THEN
+
+      file_name = TRIM( ADJUSTL( file_address ) ) // 'gen_decor_moments.dat'
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      OPEN(unit = 4018, file = file_name )
+
+      DO m_ind = 1,m_size
+
+        WRITE(4018,f_d8p4,ADVANCE ='no') DBLE( m_ind )
+        WRITE(4018,f_d8p4,ADVANCE ='yes') m_val( m_ind )
+      ! list of moment exponents
+
+      END DO
+
+      CLOSE(4018)
+
+      file_name = TRIM( ADJUSTL( file_address ) ) // 'gen_decor_growth.dat'
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      OPEN(unit = 4028, file = file_name )
+
+    END IF
+
+    WRITE(4028,f_d8p4,ADVANCE   ='no') time_now
+    DO m_ind = 1,m_size-1
+      WRITE(4028,f_d32p17,ADVANCE   ='no') DLOG( gen_decor( m_ind ) )
+    END DO
+    WRITE(4028,f_d32p17,ADVANCE   ='yes') DLOG( gen_decor( m_size ) )
+
+    IF ( t_step .EQ. t_step_total ) THEN
+      CLOSE(4028)
     END IF
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
