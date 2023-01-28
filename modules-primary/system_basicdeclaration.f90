@@ -147,7 +147,7 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXX
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
-    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256 ! THIS IS THE REFERENCE VISCOSITY 
+    ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256 ! THIS IS THE REFERENCE VISCOSITY
     viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
     ! Viscosity of the system
 
@@ -235,13 +235,13 @@ MODULE system_basicdeclaration
     time_kol          = DSQRT( viscosity / diss_rate_viscous )
     ! Kolmogorov timescale
 
-    time_tur          = DSQRT( energy_initial / diss_rate_viscous )
+    time_tur          = DSQRT( energy / diss_rate_viscous )
     ! Turbulent time scale
 
     resolving_power   = DBLE( k_G ) / DBLE( k_kol )
     ! Extent beyond which the smallest scale is resolved
 
-    rey_no            = FLOOR( DSQRT( energy ) * l_sys / viscosity )
+    rey_no            = FLOOR( u_rms * l_sys / viscosity )
     tay_rey_no        = FLOOR( 20.0D0 * DBLE( rey_no ) / 3.0D0 )
     ! Reynold's number and Taylor scale Reynold's number.
 
@@ -510,9 +510,9 @@ MODULE system_basicdeclaration
     !  A  L  L  O  C  A  T  I  O  N    -   V  E  L  O  C  I  T  Y
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(u_x(0:N-1,0:N-1,0:N-1),u_y(0:N-1,0:N-1,0:N-1),u_z(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(u2_x(0:N-1,0:N-1,0:N-1),u2_y(0:N-1,0:N-1,0:N-1),u2_z(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(u2_x(0:N-1,0:N-1,0:N-1),u2_y(0:N-1,0:N-1,0:N-1),u2_z(0:N-1,0:N-1,0:N-1))
     ALLOCATE(v_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(v2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ! ALLOCATE(v2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(spectral_energy(0       :k_max))
     ALLOCATE(spectral_energy_avg(0   :k_max))
     ALLOCATE(spectral_enstrophy(0    :k_max))
@@ -550,9 +550,9 @@ MODULE system_basicdeclaration
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE(v_x,v_y,v_z)
-		DEALLOCATE(v2_x,v2_y,v2_z)
+		! DEALLOCATE(v2_x,v2_y,v2_z)
 		DEALLOCATE(u_x,u_y,u_z)
-		DEALLOCATE(u2_x,u2_y,u2_z)
+		! DEALLOCATE(u2_x,u2_y,u2_z)
 		DEALLOCATE(spectral_energy)
     DEALLOCATE(spectral_energy_avg)
 		DEALLOCATE(spectral_enstrophy)

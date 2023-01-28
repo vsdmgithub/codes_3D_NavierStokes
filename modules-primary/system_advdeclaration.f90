@@ -76,7 +76,7 @@ MODULE system_advdeclaration
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(s_xx(0:N-1,0:N-1,0:N-1),s_yy(0:N-1,0:N-1,0:N-1),s_zz(0:N-1,0:N-1,0:N-1))
     ALLOCATE(s_zx(0:N-1,0:N-1,0:N-1),s_xy(0:N-1,0:N-1,0:N-1),s_yz(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(vx_alp(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(vx_alp(0:N-1,0:N-1,0:N-1))
 
   END
 
@@ -130,7 +130,7 @@ MODULE system_advdeclaration
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE(s_xx,s_yy,s_zz)
     DEALLOCATE(s_xy,s_yz,s_zx)
-    DEALLOCATE(vx_alp)
+    ! DEALLOCATE(vx_alp)
 
   END
 

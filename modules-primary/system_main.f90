@@ -87,7 +87,6 @@ MODULE system_main
     TIME_STEP_MIN_CHECK:IF ( ( dt .LE. dt_max ) ) THEN
 
       CALL allocate_velocity
-      ! Allocates velocity arrays for the system to start initialisation
       ! REF-> <<< system_basicdeclaration >>>
 
       CALL allocate_vorticity
@@ -97,8 +96,6 @@ MODULE system_main
       !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       CALL normalized_initial_condition
-      ! Calls initial condition, checks for NaN and incompressibility
-      ! then computes energy, then does FFT
       ! REF-> <<< system_basicfunctions >>>
 
     ELSE
@@ -122,13 +119,13 @@ MODULE system_main
       CALL allocate_solver_system
       ! Allocates arrays for solver
 
-      CALL allocate_decorrelator
+      ! CALL allocate_decorrelator
       ! REF-> <<< system_decorrelator >>>
 
-      CALL allocate_strain_tensor
+      ! CALL allocate_strain_tensor
       ! REF-> <<< system_advdeclaration >>>
 
-      CALL allocate_dissipation
+      ! CALL allocate_dissipation
       ! REF-> <<< system_advdeclaration >>>
 
       RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
@@ -267,7 +264,7 @@ MODULE system_main
         CALL solver_RK4_algorithm
         ! REF-> <<< system_solver >>>
 
-        CALL solver2_RK4_algorithm
+        ! CALL solver2_RK4_algorithm
         ! REF-> <<< system_solver >>>
 
         GOTO 10101
@@ -279,7 +276,7 @@ MODULE system_main
         CALL solver_AB4_algorithm
         ! REF-> <<< system_solver >>>
 
-        CALL solver2_AB4_algorithm
+        ! CALL solver2_AB4_algorithm
         ! REF-> <<< system_solver >>>
 
         GOTO 10101
@@ -323,25 +320,25 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL compute_decorrelator
+    ! CALL compute_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
-    CALL compute_strain_tensor
+    ! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
-    CALL compute_strainbased_lyapunov_and_timescales
+    ! CALL compute_strainbased_lyapunov_and_timescales
     ! REF-> <<< system_decorrelator >>>
 
-    CALL compute_diffusive_lyapunov_and_timescales
+    ! CALL compute_diffusive_lyapunov_and_timescales
     ! REF-> <<< system_decorrelator >>>
 
-    CALL compute_dissipation
+    ! CALL compute_dissipation
     ! REF-> <<< system_advfunctions >>>
 
-    CALL write_decorrelator_growth
+    ! CALL write_decorrelator_growth
     ! REF-> <<< system_decorrelator >>>
 
-    CALL write_decorrelator_statistics
+    ! CALL write_decorrelator_statistics
     ! REF-> <<< system_decorrelator >>>
 
     ! CALL compute_cross_correlation
@@ -377,13 +374,13 @@ MODULE system_main
 
       IF ( t_step .GT. 0 ) THEN
 
-        CALL compute_pdf_lyapunov_and_timescales
+        ! CALL compute_pdf_lyapunov_and_timescales
         ! REF-> <<< system_decorrelator >>>
 
-        CALL compute_pdf_dissipation
+        ! CALL compute_pdf_dissipation
         ! REF-> <<< system_advfunctions >>>
 
-        CALL compute_pdf_vortex_stretching
+        ! CALL compute_pdf_vortex_stretching
         ! REF-> <<< system_advfunctions >>>
 
         ! CALL write_extreme_events
@@ -459,13 +456,13 @@ MODULE system_main
 
     CALL deallocate_solver_system
 
-    CALL deallocate_strain_tensor
+    ! CALL deallocate_strain_tensor
     ! REF-> <<< system_advdeclaration >>>
 
-    CALL deallocate_dissipation
+    ! CALL deallocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
-    CALL deallocate_decorrelator
+    ! CALL deallocate_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
     CALL deallocate_velocity

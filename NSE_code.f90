@@ -64,7 +64,7 @@ USE system_timer
 	! REF-> <<< system_basicdeclaration >>>
 
   ! viscosity = ECCODE ! this will be batched
-	viscosity = 8.0D0 
+	viscosity = 8.0D0
 
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
@@ -100,7 +100,7 @@ USE system_timer
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
 			WRITE(*,*)
 
-			CALL prepare_perturbation
+			! CALL prepare_perturbation
 			! Makes a copy and pertubs by one time step evolution with and without forcing for them.
 			! REF-> <<< system_main >>>
 
