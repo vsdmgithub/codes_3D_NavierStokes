@@ -54,7 +54,7 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    ! CALL IC_exp_decaying_spectrum(energy_initial)
+    CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -64,7 +64,7 @@ MODULE system_initialcondition
     ! Read from file.
     ! *****Check whether file is available already.
 
-    CALL IC_from_file_real
+    ! CALL IC_from_file_real
     ! Read from file.
     ! *****Check whether file is available already.
 
@@ -110,7 +110,7 @@ MODULE system_initialcondition
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
     ! REF-> <<< system_auxilaries >>>
 
-    k_int        = 2
+    ! k_int        = 2
     ! Integral scale wavenumber
 
     ple_exp = 2

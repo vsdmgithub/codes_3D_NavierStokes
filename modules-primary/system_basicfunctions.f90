@@ -95,8 +95,8 @@ MODULE system_basicfunctions
     INTEGER(KIND=4)::sh_no
 
     spectral_energy     = zero
-    spectral_enstrophy  = zero
-    spectral_helicity   = zero
+    ! spectral_enstrophy  = zero
+    ! spectral_helicity   = zero
     ! Reset the array
 
     energy              = zero
@@ -122,16 +122,16 @@ MODULE system_basicfunctions
       energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
-      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
-                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
-                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
-      helicity_mode               = DREAL( helicity_mode_complex )
+      ! enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      ! helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+      !                               v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+      !                               v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
+      ! helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )    + energy_mode
-      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
-      spectral_helicity( sh_no )  = spectral_helicity( sh_no )  + helicity_mode
+      ! spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
+      ! spectral_helicity( sh_no )  = spectral_helicity( sh_no )  + helicity_mode
 
     END IF
     END DO
@@ -147,16 +147,16 @@ MODULE system_basicfunctions
       energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
-      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
-                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
-                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
-      helicity_mode               = DREAL( helicity_mode_complex )
+      ! enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      ! helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+      !                               v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+      !                               v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
+      ! helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )    + energy_mode
-      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
-      spectral_helicity( sh_no )  = spectral_helicity( sh_no )  + helicity_mode
+      ! spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no ) + enstrophy_mode
+      ! spectral_helicity( sh_no )  = spectral_helicity( sh_no )  + helicity_mode
 
     END IF
     END DO
@@ -169,16 +169,16 @@ MODULE system_basicfunctions
       energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
-      enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( w_vz( j_x, j_y, j_z ) ) ** two
-      helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
-                                    v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
-                                    v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
-      helicity_mode               = DREAL( helicity_mode_complex )
+      ! enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+      !                               CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+      ! helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+      !                               v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+      !                               v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
+      ! helicity_mode               = DREAL( helicity_mode_complex )
       spectral_energy( sh_no )    = spectral_energy( sh_no )      + energy_mode
-      spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
-      spectral_helicity( sh_no )  = spectral_helicity( sh_no )    + helicity_mode
+      ! spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )   + enstrophy_mode
+      ! spectral_helicity( sh_no )  = spectral_helicity( sh_no )    + helicity_mode
 
     END DO
 
@@ -187,35 +187,35 @@ MODULE system_basicfunctions
     energy_mode                 = CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                   CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                   CDABS( v_z( j_x, j_y, j_z ) ) ** two
-    enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
-                                  CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
-                                  CDABS( w_vz( j_x, j_y, j_z ) ) ** two
-    helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
-                                  v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
-                                  v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
-    helicity_mode               = DREAL( helicity_mode_complex )
+    ! enstrophy_mode              = CDABS( w_vx( j_x, j_y, j_z ) ) ** two + &
+    !                               CDABS( w_vy( j_x, j_y, j_z ) ) ** two + &
+    !                               CDABS( w_vz( j_x, j_y, j_z ) ) ** two
+    ! helicity_mode_complex       = v_x( j_x, j_y, j_z ) * DCONJG( w_vx( j_x, j_y, j_z ) ) + &
+    !                               v_y( j_x, j_y, j_z ) * DCONJG( w_vy( j_x, j_y, j_z ) ) + &
+    !                               v_z( j_x, j_y, j_z ) * DCONJG( w_vz( j_x, j_y, j_z ) )
+    ! helicity_mode               = DREAL( helicity_mode_complex )
     spectral_energy( sh_no )    = spectral_energy( sh_no )        + hf * energy_mode
-    spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )     + hf * enstrophy_mode
-    spectral_helicity( sh_no )  = spectral_helicity( sh_no )      + hf * helicity_mode
+    ! spectral_enstrophy( sh_no ) = spectral_enstrophy( sh_no )     + hf * enstrophy_mode
+    ! spectral_helicity( sh_no )  = spectral_helicity( sh_no )      + hf * helicity_mode
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  S  H  E  L  L      A  V  E  R  A  G  I  N  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     spectral_energy_avg( 0 )         = spectral_energy( 0 )
-    spectral_enstrophy_avg( 0 )      = spectral_enstrophy( 0 )
-    spectral_helicity_avg( 0 )       = spectral_helicity( 0 )
     spectral_energy_avg( 1 )         = qtr * ( thr * spectral_energy( 1 )    + spectral_energy( 2 ) )
-    spectral_enstrophy_avg( 1 )      = qtr * ( thr * spectral_enstrophy( 1 ) + spectral_enstrophy( 2 ) )
-    spectral_helicity_avg( 1 )       = qtr * ( thr * spectral_helicity( 1 )  + spectral_helicity( 2 ) )
+    ! spectral_enstrophy_avg( 0 )      = spectral_enstrophy( 0 )
+    ! spectral_enstrophy_avg( 1 )      = qtr * ( thr * spectral_enstrophy( 1 ) + spectral_enstrophy( 2 ) )
+    ! spectral_helicity_avg( 0 )       = spectral_helicity( 0 )
+    ! spectral_helicity_avg( 1 )       = qtr * ( thr * spectral_helicity( 1 )  + spectral_helicity( 2 ) )
 
     DO k_no                          = 2, k_max - 1
 
       spectral_energy_avg( k_no )    = qtr * ( spectral_energy( k_no - 1 )    + spectral_energy( k_no + 1 ) ) + &
                                         hf * ( spectral_energy( k_no ) )
-      spectral_enstrophy_avg( k_no ) = qtr * ( spectral_enstrophy( k_no - 1 ) + spectral_enstrophy( k_no + 1 ) ) + &
-                                        hf * ( spectral_enstrophy( k_no ) )
-      spectral_helicity_avg( k_no )  = qtr * ( spectral_helicity( k_no - 1 )  + spectral_helicity( k_no + 1 ) ) + &
-                                        hf * ( spectral_helicity( k_no ) )
+      ! spectral_enstrophy_avg( k_no ) = qtr * ( spectral_enstrophy( k_no - 1 ) + spectral_enstrophy( k_no + 1 ) ) + &
+      !                                   hf * ( spectral_enstrophy( k_no ) )
+      ! spectral_helicity_avg( k_no )  = qtr * ( spectral_helicity( k_no - 1 )  + spectral_helicity( k_no + 1 ) ) + &
+      !                                   hf * ( spectral_helicity( k_no ) )
 
     END DO
 
@@ -223,9 +223,12 @@ MODULE system_basicfunctions
     !  N  E  T     E , Z , H , D
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    energy    = SUM( spectral_energy(    : ) )
-    enstrophy = SUM( spectral_enstrophy( : ) )
-    helicity  = SUM( spectral_helicity(  : ) )
+    CALL compute_energy
+    CALL compute_enstrophy
+    CALL compute_helicity
+    ! energy    = SUM( spectral_energy(    : ) )
+    ! enstrophy = SUM( spectral_enstrophy( : ) )
+    ! helicity  = SUM( spectral_helicity(  : ) )
     ! Computes the net energy, enstrophy, helicity
 
     diss_rate         = ( energy_initial - energy ) / dt
@@ -263,21 +266,21 @@ MODULE system_basicfunctions
       energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_z( j_x, j_y, j_z ) ) ** two )
-      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
-                                                          CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
-                                                          CDABS( v2_z( j_x, j_y, j_z ) ) ** two )
+      ! energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+      !                                                     CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+      !                                                     CDABS( v2_z( j_x, j_y, j_z ) ) ** two )
       ELSE
       energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_z( j_x, j_y, j_z ) ) ** two
-      energy_forcing_modes = energy_forcing_modes +  CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
-                                                     CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
-                                                     CDABS( v2_z( j_x, j_y, j_z ) ) ** two
+      ! energy_forcing_modes = energy_forcing_modes +  CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+      !                                                CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+      !                                                CDABS( v2_z( j_x, j_y, j_z ) ) ** two
       END IF KX_EQ_ZERO_CHECK
 
     END DO LOOP_FORCING_MODES_301
 
-    energy_forcing_modes = energy_forcing_modes / two
+    ! energy_forcing_modes = energy_forcing_modes / two
 
 		pre_factor_forcing   = diss_rate_viscous + diss_rate
     ! Matches with the visous dissipation
@@ -361,7 +364,7 @@ MODULE system_basicfunctions
 
   SUBROUTINE compute_vorticity
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
+  ! -------------
   ! CALL this to get vorticity field
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

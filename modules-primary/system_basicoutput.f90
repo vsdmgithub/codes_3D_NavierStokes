@@ -78,11 +78,11 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-   path_dir    =   '../NSE_data/'
+   path_dir    =   '../data_chaos/'
     ! path_dir    =   '../NSE_data_eulerianchaos/'
     ! path of the main directory relative to this file.
 
-    sub_dir_3D  =   '3D_data/'
+    ! sub_dir_3D  =   '3D_data/'
     ! Sub directory name to store 3D data - large file sizes.
 
     sub_dir_2D  =   '2D_data/'
@@ -91,7 +91,7 @@ MODULE system_basicoutput
     sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    sub_dir_pdf =   'pdf/'
+    ! sub_dir_pdf =   'pdf/'
     ! Sub directory name to store pdf
 
     type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
@@ -129,11 +129,11 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
 
-    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
+    ! CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
-    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) )
+    ! CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) )
 
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error
@@ -198,32 +198,32 @@ MODULE system_basicoutput
     WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(233,"(A20,A2,I8)") 'Resolution ','          = ',N
-    WRITE(233,"(A20,A2,ES8.2)") 'Time step ','        = ',dt
-    WRITE(233,"(A20,A2,ES8.2)") 'Viscosity ','        = ',viscosity
-    WRITE(233,"(A20,A2,I8)") 'Reynolds ','            = ',rey_no
-    WRITE(233,"(A20,A2,I8)") 'Taylor-Reynolds ','     = ',tay_rey_no
-    WRITE(233,"(A20,A2,I8)") 'Trunc. Mode ','         = ',k_G
-    WRITE(233,"(A20,A2,I8)") 'Kolmo. Mode ','         = ',k_kol
-    WRITE(233,"(A20,A2,I8)") 'Forcing. Mode ','       = ',k_for
-    WRITE(233,"(A20,A2,I8)") 'Integral. Mode ','      = ',k_int
-    WRITE(233,"(A20,A2,F8.2)") 'Resolving power','    = ',resolving_power
-    WRITE(233,"(A20,A2,I8)") 'CFL ratio ','           = ',CFL_system
-    WRITE(233,"(A20,A2,F8.6)") 'Grid time ','         = ',time_grid
-    WRITE(233,"(A20,A2,F8.6)") 'Kolmo. time ','       = ',time_kol
-    WRITE(233,"(A20,A2,F8.6)") 'Turbl time scale ','  = ',time_tur
-    WRITE(233,"(A20,A2,F8.4)") 'Total time ','        = ',time_total
-    WRITE(233,"(A20,A2,I8)") 'Total time steps ','    = ',t_step_total
-    WRITE(233,"(A20,A2,I8)") 'No of saves ','         = ',no_of_saves
-    WRITE(233,"(A20,A2,I8)") 'No of 3D saves ','      = ',no_of_3D_saves
-    WRITE(233,"(A20,A2,F8.5)") 'Rms Velocity ','      = ',u_rms
-    WRITE(233,"(A20,A2,F8.5)") 'Kol Velocity ','      = ',u_kol
-    WRITE(233,"(A20,A2,F8.4)") 'Initial energy ','    = ',energy
-    WRITE(233,"(A20,A2,F8.4)") 'Initial enstrophy ',' = ',enstrophy
-    WRITE(233,"(A20,A2,F8.4)") 'Initial helicity ','  = ',helicity
-    WRITE(233,"(A20,A2,F8.4)") 'Dissip(Approx)','     = ',diss_rate_ref
-    WRITE(233,"(A20,A2,ES8.2)") 'Initial comp ','     = ',k_dot_v_norm
-    WRITE(233,"(A20,A2,A8)") 'Initial condition','    = ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,"(A20,A2,I8)") 'Resolution ',          '= ',N
+    WRITE(233,"(A20,A2,ES8.2)") 'Time step ',        '= ',dt
+    WRITE(233,"(A20,A2,ES8.2)") 'Viscosity ',        '= ',viscosity
+    WRITE(233,"(A20,A2,I8)") 'Reynolds ',            '= ',rey_no
+    WRITE(233,"(A20,A2,I8)") 'Taylor-Reynolds ',     '= ',tay_rey_no
+    WRITE(233,"(A20,A2,I8)") 'Trunc. Mode ',         '= ',k_G
+    WRITE(233,"(A20,A2,I8)") 'Kolmo. Mode ',         '= ',k_kol
+    WRITE(233,"(A20,A2,I8)") 'Forcing. Mode ',       '= ',k_for
+    WRITE(233,"(A20,A2,I8)") 'Integral. Mode ',      '= ',k_int
+    WRITE(233,"(A20,A2,F8.2)") 'Resolving power',    '= ',resolving_power
+    WRITE(233,"(A20,A2,I8)") 'CFL ratio ',           '= ',CFL_system
+    WRITE(233,"(A20,A2,F8.6)") 'Grid time ',         '= ',time_grid
+    WRITE(233,"(A20,A2,F8.6)") 'Kolmo. time ',       '= ',time_kol
+    WRITE(233,"(A20,A2,F8.6)") 'Turbl time scale ',  '= ',time_tur
+    WRITE(233,"(A20,A2,F8.4)") 'Total time ',        '= ',time_total
+    WRITE(233,"(A20,A2,I8)") 'Total time steps ',    '= ',t_step_total
+    WRITE(233,"(A20,A2,I8)") 'No of saves ',         '= ',no_of_saves
+    WRITE(233,"(A20,A2,I8)") 'No of 3D saves ',      '= ',no_of_3D_saves
+    WRITE(233,"(A20,A2,F8.5)") 'Rms Velocity ',      '= ',u_rms
+    WRITE(233,"(A20,A2,F8.5)") 'Kol Velocity ',      '= ',u_kol
+    WRITE(233,"(A20,A2,F8.4)") 'Initial energy ',    '= ',energy
+    WRITE(233,"(A20,A2,F8.4)") 'Initial enstrophy ', '= ',enstrophy
+    WRITE(233,"(A20,A2,F8.4)") 'Initial helicity ',  '= ',helicity
+    WRITE(233,"(A20,A2,F8.4)") 'Dissip(Approx)',     '= ',diss_rate_ref
+    WRITE(233,"(A20,A2,ES8.2)") 'Initial comp ',     '= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,A8)") 'Initial condition',    '= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
@@ -236,32 +236,32 @@ MODULE system_basicoutput
     WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(*,*)
-    WRITE(*,"(A20,A2,I8)") 'Resolution ','          = ',N
-    WRITE(*,"(A20,A2,ES8.2)") 'Time step ','        = ',dt
-    WRITE(*,"(A20,A2,ES8.2)") 'Viscosity ','        = ',viscosity
-    WRITE(*,"(A20,A2,I8)") 'Reynolds ','            = ',rey_no
-    WRITE(*,"(A20,A2,I8)") 'Taylor-Reynolds ','     = ',tay_rey_no
-    WRITE(*,"(A20,A2,I8)") 'Trunc. Mode ','         = ',k_G
-    WRITE(*,"(A20,A2,I8)") 'Kolmo. Mode ','         = ',k_kol
-    WRITE(*,"(A20,A2,I8)") 'Forcing. Mode ','       = ',k_for
-    WRITE(*,"(A20,A2,I8)") 'Integral. Mode ','      = ',k_int
-    WRITE(*,"(A20,A2,F8.2)") 'Resolving power','    = ',resolving_power
-    WRITE(*,"(A20,A2,I8)") 'CFL ratio ','           = ',CFL_system
-    WRITE(*,"(A20,A2,F8.6)") 'Grid time ','         = ',time_grid
-    WRITE(*,"(A20,A2,F8.6)") 'Kolmo. time ','       = ',time_kol
-    WRITE(*,"(A20,A2,F8.6)") 'Turbl time scale ','  = ',time_tur
-    WRITE(*,"(A20,A2,F8.4)") 'Total time ','        = ',time_total
-    WRITE(*,"(A20,A2,I8)") 'Total time steps ','    = ',t_step_total
-    WRITE(*,"(A20,A2,I8)") 'No of saves ','         = ',no_of_saves
-    WRITE(*,"(A20,A2,I8)") 'No of 3D saves ','      = ',no_of_3D_saves
-    WRITE(*,"(A20,A2,F8.5)") 'Rms Velocity ','      = ',u_rms
-    WRITE(*,"(A20,A2,F8.5)") 'Kol Velocity ','      = ',u_kol
-    WRITE(*,"(A20,A2,F8.4)") 'Initial energy ','    = ',energy
-    WRITE(*,"(A20,A2,F8.4)") 'Initial enstrophy ',' = ',enstrophy
-    WRITE(*,"(A20,A2,F8.4)") 'Initial helicity ','  = ',helicity
-    WRITE(*,"(A20,A2,F8.4)") 'Dissip(Approx)','     = ',diss_rate_ref
-    WRITE(*,"(A20,A2,ES8.2)") 'Initial comp ','     = ',k_dot_v_norm
-    WRITE(*,"(A20,A2,A8)") 'Initial condition','    = ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(*,"(A20,A2,I8)") 'Resolution ',          '= ',N
+    WRITE(*,"(A20,A2,ES8.2)") 'Time step ',        '= ',dt
+    WRITE(*,"(A20,A2,ES8.2)") 'Viscosity ',        '= ',viscosity
+    WRITE(*,"(A20,A2,I8)") 'Reynolds ',            '= ',rey_no
+    WRITE(*,"(A20,A2,I8)") 'Taylor-Reynolds ',     '= ',tay_rey_no
+    WRITE(*,"(A20,A2,I8)") 'Trunc. Mode ',         '= ',k_G
+    WRITE(*,"(A20,A2,I8)") 'Kolmo. Mode ',         '= ',k_kol
+    WRITE(*,"(A20,A2,I8)") 'Forcing. Mode ',       '= ',k_for
+    WRITE(*,"(A20,A2,I8)") 'Integral. Mode ',      '= ',k_int
+    WRITE(*,"(A20,A2,F8.2)") 'Resolving power',    '= ',resolving_power
+    WRITE(*,"(A20,A2,I8)") 'CFL ratio ',           '= ',CFL_system
+    WRITE(*,"(A20,A2,F8.6)") 'Grid time ',         '= ',time_grid
+    WRITE(*,"(A20,A2,F8.6)") 'Kolmo. time ',       '= ',time_kol
+    WRITE(*,"(A20,A2,F8.6)") 'Turbl time scale ',  '= ',time_tur
+    WRITE(*,"(A20,A2,F8.4)") 'Total time ',        '= ',time_total
+    WRITE(*,"(A20,A2,I8)") 'Total time steps ',    '= ',t_step_total
+    WRITE(*,"(A20,A2,I8)") 'No of saves ',         '= ',no_of_saves
+    WRITE(*,"(A20,A2,I8)") 'No of 3D saves ',      '= ',no_of_3D_saves
+    WRITE(*,"(A20,A2,F8.5)") 'Rms Velocity ',      '= ',u_rms
+    WRITE(*,"(A20,A2,F8.5)") 'Kol Velocity ',      '= ',u_kol
+    WRITE(*,"(A20,A2,F8.4)") 'Initial energy ',    '= ',energy
+    WRITE(*,"(A20,A2,F8.4)") 'Initial enstrophy ', '= ',enstrophy
+    WRITE(*,"(A20,A2,F8.4)") 'Initial helicity ',  '= ',helicity
+    WRITE(*,"(A20,A2,F8.4)") 'Dissip(Approx)',     '= ',diss_rate_ref
+    WRITE(*,"(A20,A2,ES8.2)") 'Initial comp ',     '= ',k_dot_v_norm
+    WRITE(*,"(A20,A2,A8)") 'Initial condition',    '= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
@@ -291,34 +291,34 @@ MODULE system_basicoutput
     WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
     WRITE(234,"(A50)")TRIM(ADJUSTL('---------------PARAMETERS OF SIMULATION------------'))
     WRITE(234,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(234,"(A20,A2,I8)") 'Resolution ','         = ',N
-    WRITE(234,"(A20,A2,ES8.2)") 'Time step ','       = ',dt
-    WRITE(234,"(A20,A2,ES8.2)") 'Viscosity ','       = ',viscosity
-    WRITE(234,"(A20,A2,ES8.2)") 'Initial Decor ','   = ',decor_initial
-    WRITE(234,"(A20,A2,ES8.2)") 'Final Decor ','     = ',decor_final
-    WRITE(234,"(A20,A2,I8)") 'Reynolds ','           = ',rey_no
-    WRITE(234,"(A20,A2,I8)") 'Taylor-Reynolds ','    = ',tay_rey_no
-    WRITE(234,"(A20,A2,I8)") 'Trunc. Mode ','        = ',k_G
-    WRITE(234,"(A20,A2,I8)") 'Kolmo. Mode ','        = ',k_kol
-    WRITE(234,"(A20,A2,I8)") 'Forcing. Mode ','      = ',k_for
-    WRITE(234,"(A20,A2,I8)") 'Integral. Mode ','     = ',k_int
-    WRITE(234,"(A20,A2,F8.2)") 'Resolving power','   = ',resolving_power
-    WRITE(234,"(A20,A2,I8)") 'CFL ratio ','          = ',CFL_system
-    WRITE(234,"(A20,A2,F8.6)") 'Grid time ','        = ',time_grid
-    WRITE(234,"(A20,A2,F8.6)") 'Kolmo. time ','      = ',time_kol
-    WRITE(234,"(A20,A2,F8.6)") 'Turbl time scale ',' = ',time_tur
-    WRITE(234,"(A20,A2,F8.4)") 'Total time ','       = ',time_total
-    WRITE(234,"(A20,A2,I8)") 'Total time steps ','   = ',t_step_total
-    WRITE(234,"(A20,A2,I8)") 'No of saves ','        = ',no_of_saves
-    WRITE(234,"(A20,A2,I8)") 'No of 3D saves ','     = ',no_of_3D_saves
-    WRITE(234,"(A20,A2,F8.5)") 'Rms Velocity ','     = ',u_rms
-    WRITE(234,"(A20,A2,F8.5)") 'Kol Velocity ','     = ',u_kol
-    WRITE(234,"(A20,A2,F8.4)") 'Final energy ','     = ',energy
-    WRITE(234,"(A20,A2,F8.4)") 'Final enstrophy ','  = ',enstrophy
-    WRITE(234,"(A20,A2,F8.4)") 'Final helicity ','   = ',helicity
-    WRITE(234,"(A20,A2,F8.4)") 'Dissip(Approx)','    = ',diss_rate_viscous
-    WRITE(234,"(A20,A2,ES8.2)") 'Final comp ','      = ',k_dot_v_norm
-    WRITE(234,"(A20,A2,A8)") 'Initial condition','   = ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(234,"(A20,A2,I8)") 'Resolution ',         '= ',N
+    WRITE(234,"(A20,A2,ES8.2)") 'Time step ',       '= ',dt
+    WRITE(234,"(A20,A2,ES8.2)") 'Viscosity ',       '= ',viscosity
+    WRITE(234,"(A20,A2,ES8.2)") 'Initial Decor ',   '= ',decor_initial
+    WRITE(234,"(A20,A2,ES8.2)") 'Final Decor ',     '= ',decor_final
+    WRITE(234,"(A20,A2,I8)") 'Reynolds ',           '= ',rey_no
+    WRITE(234,"(A20,A2,I8)") 'Taylor-Reynolds ',    '= ',tay_rey_no
+    WRITE(234,"(A20,A2,I8)") 'Trunc. Mode ',        '= ',k_G
+    WRITE(234,"(A20,A2,I8)") 'Kolmo. Mode ',        '= ',k_kol
+    WRITE(234,"(A20,A2,I8)") 'Forcing. Mode ',      '= ',k_for
+    WRITE(234,"(A20,A2,I8)") 'Integral. Mode ',     '= ',k_int
+    WRITE(234,"(A20,A2,F8.2)") 'Resolving power',   '= ',resolving_power
+    WRITE(234,"(A20,A2,I8)") 'CFL ratio ',          '= ',CFL_system
+    WRITE(234,"(A20,A2,F8.6)") 'Grid time ',        '= ',time_grid
+    WRITE(234,"(A20,A2,F8.6)") 'Kolmo. time ',      '= ',time_kol
+    WRITE(234,"(A20,A2,F8.6)") 'Turbl time scale ', '= ',time_tur
+    WRITE(234,"(A20,A2,F8.4)") 'Total time ',       '= ',time_total
+    WRITE(234,"(A20,A2,I8)") 'Total time steps ',   '= ',t_step_total
+    WRITE(234,"(A20,A2,I8)") 'No of saves ',        '= ',no_of_saves
+    WRITE(234,"(A20,A2,I8)") 'No of 3D saves ',     '= ',no_of_3D_saves
+    WRITE(234,"(A20,A2,F8.5)") 'Rms Velocity ',     '= ',u_rms
+    WRITE(234,"(A20,A2,F8.5)") 'Kol Velocity ',     '= ',u_kol
+    WRITE(234,"(A20,A2,F8.4)") 'Final energy ',     '= ',energy
+    WRITE(234,"(A20,A2,F8.4)") 'Final enstrophy ',  '= ',enstrophy
+    WRITE(234,"(A20,A2,F8.4)") 'Final helicity ',   '= ',helicity
+    WRITE(234,"(A20,A2,F8.4)") 'Dissip(Approx)',    '= ',diss_rate_viscous
+    WRITE(234,"(A20,A2,ES8.2)") 'Final comp ',      '= ',k_dot_v_norm
+    WRITE(234,"(A20,A2,A8)") 'Initial condition',   '= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(234,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
     CLOSE(234)
@@ -330,34 +330,34 @@ MODULE system_basicoutput
     WRITE(*,"(A50)")TRIM(ADJUSTL('------NAME:'))//TRIM(ADJUSTL(name_sim))//TRIM(ADJUSTL('----------------'))
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
     WRITE(*,*)
-    WRITE(*,"(A20,A2,I8)") 'Resolution ','         = ',N
-    WRITE(*,"(A21,A3,ES9.3)") 'Time step ','       = ',dt
-    WRITE(*,"(A21,A3,ES9.3)") 'Viscosity ','       = ',viscosity
-    WRITE(*,"(A21,A3,ES9.3)") 'Initial Decor ','   = ',decor_initial
-    WRITE(*,"(A21,A3,ES9.3)") 'Final Decor ','     = ',decor_final
-    WRITE(*,"(A21,A3,I9)") 'Reynolds ','           = ',rey_no
-    WRITE(*,"(A21,A3,I9)") 'Taylor-Reynolds ','    = ',tay_rey_no
-    WRITE(*,"(A21,A3,I9)") 'Trunc. Mode ','        = ',k_G
-    WRITE(*,"(A21,A3,I9)") 'Kolmo. Mode ','        = ',k_kol
-    WRITE(*,"(A21,A3,I9)") 'Forcing. Mode ','      = ',k_for
-    WRITE(*,"(A21,A3,I9)") 'Integral. Mode ','     = ',k_int
-    WRITE(*,"(A21,A3,F9.3)") 'Resolving power','   = ',resolving_power
-    WRITE(*,"(A21,A3,I9)") 'CFL ratio ','          = ',CFL_system
-    WRITE(*,"(A21,A3,F9.7)") 'Grid time ','        = ',time_grid
-    WRITE(*,"(A21,A3,F9.7)") 'Kolmo. time ','      = ',time_kol
-    WRITE(*,"(A21,A3,F9.7)") 'Turbl time scale ',' = ',time_tur
-    WRITE(*,"(A21,A3,F9.5)") 'Total time ','       = ',time_total
-    WRITE(*,"(A21,A3,I9)") 'Total time steps ','   = ',t_step_total
-    WRITE(*,"(A21,A3,I9)") 'No of saves ','        = ',no_of_saves
-    WRITE(*,"(A21,A3,I9)") 'No of 4D saves ','     = ',no_of_4D_saves
-    WRITE(*,"(A21,A3,F9.6)") 'Rms Velocity ','     = ',u_rms
-    WRITE(*,"(A21,A3,F9.6)") 'Kol Velocity ','     = ',u_kol
-    WRITE(*,"(A21,A3,F9.5)") 'Final energy ','     = ',energy
-    WRITE(*,"(A21,A3,F9.5)") 'Final enstrophy ','  = ',enstrophy
-    WRITE(*,"(A21,A3,F9.5)") 'Final helicity ','   = ',helicity
-    WRITE(*,"(A21,A3,F9.5)") 'Dissip(Approx)','    = ',diss_rate_viscous
-    WRITE(*,"(A21,A3,ES9.3)") 'Final comp ','      = ',k_dot_v_norm
-    WRITE(*,"(A21,A3,A9)") 'Final condition','     = ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(*,"(A20,A2,I8)") 'Resolution ',         '= ',N
+    WRITE(*,"(A21,A3,ES9.3)") 'Time step ',       '= ',dt
+    WRITE(*,"(A21,A3,ES9.3)") 'Viscosity ',       '= ',viscosity
+    WRITE(*,"(A21,A3,ES9.3)") 'Initial Decor ',   '= ',decor_initial
+    WRITE(*,"(A21,A3,ES9.3)") 'Final Decor ',     '= ',decor_final
+    WRITE(*,"(A21,A3,I9)") 'Reynolds ',           '= ',rey_no
+    WRITE(*,"(A21,A3,I9)") 'Taylor-Reynolds ',    '= ',tay_rey_no
+    WRITE(*,"(A21,A3,I9)") 'Trunc. Mode ',        '= ',k_G
+    WRITE(*,"(A21,A3,I9)") 'Kolmo. Mode ',        '= ',k_kol
+    WRITE(*,"(A21,A3,I9)") 'Forcing. Mode ',      '= ',k_for
+    WRITE(*,"(A21,A3,I9)") 'Integral. Mode ',     '= ',k_int
+    WRITE(*,"(A21,A3,F9.3)") 'Resolving power',   '= ',resolving_power
+    WRITE(*,"(A21,A3,I9)") 'CFL ratio ',          '= ',CFL_system
+    WRITE(*,"(A21,A3,F9.7)") 'Grid time ',        '= ',time_grid
+    WRITE(*,"(A21,A3,F9.7)") 'Kolmo. time ',      '= ',time_kol
+    WRITE(*,"(A21,A3,F9.7)") 'Turbl time scale ', '= ',time_tur
+    WRITE(*,"(A21,A3,F9.5)") 'Total time ',       '= ',time_total
+    WRITE(*,"(A21,A3,I9)") 'Total time steps ',   '= ',t_step_total
+    WRITE(*,"(A21,A3,I9)") 'No of saves ',        '= ',no_of_saves
+    WRITE(*,"(A21,A3,I9)") 'No of 3D saves ',     '= ',no_of_3D_saves
+    WRITE(*,"(A21,A3,F9.6)") 'Rms Velocity ',     '= ',u_rms
+    WRITE(*,"(A21,A3,F9.6)") 'Kol Velocity ',     '= ',u_kol
+    WRITE(*,"(A21,A3,F9.5)") 'Final energy ',     '= ',energy
+    WRITE(*,"(A21,A3,F9.5)") 'Final enstrophy ',  '= ',enstrophy
+    WRITE(*,"(A21,A3,F9.5)") 'Final helicity ',   '= ',helicity
+    WRITE(*,"(A21,A3,F9.5)") 'Dissip(Approx)',    '= ',diss_rate_viscous
+    WRITE(*,"(A21,A3,ES9.3)") 'Final comp ',      '= ',k_dot_v_norm
+    WRITE(*,"(A21,A3,A9)") 'Final condition',     '= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(*,*)
     WRITE(*,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 

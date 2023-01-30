@@ -351,10 +351,6 @@ MODULE system_main
 
     END IF FORCING_CHECK_401
 
-    ! CALL write_section('sec_velX',u_x(0,:,:))
-    ! CALL write_section('sec_vorX',w_ux(0,:,:))
-    ! REF-> <<< system_basicoutput >>>
-
     CALL write_temporal_data
     ! REF-> <<< system_basicoutput >>>
 
@@ -365,6 +361,10 @@ MODULE system_main
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
+
+	    CALL write_section('sec_velX',u_x(Nh,:,:))
+	    CALL write_section('sec_vorZ',w_uz(Nh,:,:))
+	    ! REF-> <<< system_basicoutput >>>
 
       !CALL write_lyapunov_field
       ! REF-> <<< system_decorrelator >>>

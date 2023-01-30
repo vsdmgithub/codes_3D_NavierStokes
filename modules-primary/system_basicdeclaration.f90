@@ -151,10 +151,10 @@ MODULE system_basicdeclaration
     viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
     ! Viscosity of the system
 
-    k_int             = 5
+    k_int             = 2
     ! Integral scale wavnumber
 
-    k_for             = 3
+    k_for             = 4
     ! Wavenumbers below which forcing is implemented
 
     CALL find_diss_rate_ref( energy_initial, k_int, diss_rate_ref )
@@ -164,7 +164,7 @@ MODULE system_basicdeclaration
     diss_rate_viscous = diss_rate_ref
     ! Assuming viscous dissipation as reference for start
 
-    cfl_min           = 6
+    cfl_min           = 10
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
@@ -241,8 +241,8 @@ MODULE system_basicdeclaration
     resolving_power   = DBLE( k_G ) / DBLE( k_kol )
     ! Extent beyond which the smallest scale is resolved
 
-    rey_no            = FLOOR( u_rms * l_sys / viscosity )
-    tay_rey_no        = FLOOR( 20.0D0 * DBLE( rey_no ) / 3.0D0 )
+    rey_no            = FLOOR( u_rms * l_sys / ( k_int * viscosity ) )
+    tay_rey_no        = FLOOR( DSQRT( 20.0D0 * DBLE( rey_no ) / 3.0D0 ) )
     ! Reynold's number and Taylor scale Reynold's number.
 
     FIND_MIN_TIME: IF ( time_grid .LT. time_kol ) THEN
@@ -515,10 +515,10 @@ MODULE system_basicdeclaration
     ! ALLOCATE(v2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(spectral_energy(0       :k_max))
     ALLOCATE(spectral_energy_avg(0   :k_max))
-    ALLOCATE(spectral_enstrophy(0    :k_max))
-    ALLOCATE(spectral_enstrophy_avg(0:k_max))
-    ALLOCATE(spectral_helicity(0     :k_max))
-    ALLOCATE(spectral_helicity_avg(0 :k_max))
+    ! ALLOCATE(spectral_enstrophy(0    :k_max))
+    ! ALLOCATE(spectral_enstrophy_avg(0:k_max))
+    ! ALLOCATE(spectral_helicity(0     :k_max))
+    ! ALLOCATE(spectral_helicity_avg(0 :k_max))
 
 	END
 
@@ -555,10 +555,10 @@ MODULE system_basicdeclaration
 		! DEALLOCATE(u2_x,u2_y,u2_z)
 		DEALLOCATE(spectral_energy)
     DEALLOCATE(spectral_energy_avg)
-		DEALLOCATE(spectral_enstrophy)
-		DEALLOCATE(spectral_enstrophy_avg)
-		DEALLOCATE(spectral_helicity_avg)
-		DEALLOCATE(spectral_helicity)
+		! DEALLOCATE(spectral_enstrophy)
+		! DEALLOCATE(spectral_enstrophy_avg)
+		! DEALLOCATE(spectral_helicity_avg)
+		! DEALLOCATE(spectral_helicity)
 
 	END
 
