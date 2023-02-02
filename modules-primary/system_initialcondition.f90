@@ -60,6 +60,12 @@ MODULE system_initialcondition
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
     ! Creating Kolmogorov spectrum, inbuilt k^-5/3 spectrum
 
+    ! CALL IC_TG(energy_initial)
+    ! TAYLOR_GREEN Initial condition - lots of symmetries (although solver is not using them)
+
+    ! CALL IC_KP(energy_initial)
+    ! KIDA-PELTZ Initial condition - lots of symmetries
+
     ! CALL IC_from_file_spectral
     ! Read from file.
     ! *****Check whether file is available already.
@@ -361,6 +367,137 @@ MODULE system_initialcondition
 
   END
 
+  SUBROUTINE IC_TG(energy_input)
+  ! This is TAYLOR_GREEN Vortex initial condition which has a lot of symmetries
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER` VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE COMPLEX::v0
+
+    IC_type = 'TAY-GRE'
+
+    v0            = i / 8.0D0
+    !-------- 'x' velocity--------------
+    v_x(+1,+1,+1) = - v0
+    v_x(+1,+1,-1) = - v0
+    v_x(+1,-1,+1) = - v0
+    v_x(+1,-1,-1) = - v0
+    !-------- 'y' velocity--------------
+    v_y(+1,+1,+1) = + v0
+    v_y(+1,+1,-1) = + v0
+    v_y(+1,-1,+1) = - v0
+    v_y(+1,-1,-1) = - v0
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v0           = norm_factor * v0
+    !-------- 'x' velocity--------------
+    v_x(+1,+1,+1) = - v0
+    v_x(+1,+1,-1) = - v0
+    v_x(+1,-1,+1) = - v0
+    v_x(+1,-1,-1) = - v0
+    !-------- 'y' velocity--------------
+    v_y(+1,+1,+1) = + v0
+    v_y(+1,+1,-1) = + v0
+    v_y(+1,-1,+1) = - v0
+    v_y(+1,-1,-1) = - v0
+
+  END
+
+  SUBROUTINE IC_KP(energy_input)
+  ! This is Kida Peltz Vortex INitial condition which has a lot of symmetries
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE COMPLEX::v1
+
+    IC_type = 'KID-PEL'
+
+    v1           = - i / 8.0D0
+
+    !-------- 'x' velocity--------------
+    v_x(+1,+3,+1) = + v1
+    v_x(+1,+3,-1) = + v1
+    v_x(+1,-3,+1) = + v1
+    v_x(+1,-3,-1) = + v1
+    v_x(+1,+1,+3) = - v1
+    v_x(+1,+1,-3) = - v1
+    v_x(+1,-1,+3) = - v1
+    v_x(+1,-1,-3) = - v1
+
+    !-------- 'y' velocity--------------
+    v_y(+1,+1,+3) = + v1
+    v_y(+1,-1,-3) = - v1
+    v_y(+1,+1,-3) = + v1
+    v_y(+1,-1,+3) = - v1
+    v_y(+3,+1,+1) = - v1
+    v_y(+3,-1,-1) = + v1
+    v_y(+3,+1,-1) = - v1
+    v_y(+3,-1,+1) = + v1
+
+    !-------- 'z' velocity--------------
+    v_z(+3,+1,+1) = + v1
+    v_z(+3,-1,+1) = + v1
+    v_z(+3,-1,-1) = - v1
+    v_z(+3,+1,-1) = - v1
+    v_z(+1,+3,+1) = - v1
+    v_z(+1,-3,+1) = - v1
+    v_z(+1,-3,-1) = + v1
+    v_z(+1,+3,-1) = + v1
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v1           = norm_factor * v1
+
+    !-------- 'x' velocity--------------
+    v_x(+1,+3,+1) = + v1
+    v_x(+1,+3,-1) = + v1
+    v_x(+1,-3,+1) = + v1
+    v_x(+1,-3,-1) = + v1
+    v_x(+1,+1,+3) = - v1
+    v_x(+1,+1,-3) = - v1
+    v_x(+1,-1,+3) = - v1
+    v_x(+1,-1,-3) = - v1
+
+    !-------- 'y' velocity--------------
+    v_y(+1,+1,+3) = + v1
+    v_y(+1,-1,-3) = - v1
+    v_y(+1,+1,-3) = + v1
+    v_y(+1,-1,+3) = - v1
+    v_y(+3,+1,+1) = - v1
+    v_y(+3,-1,-1) = + v1
+    v_y(+3,+1,-1) = - v1
+    v_y(+3,-1,+1) = + v1
+
+    !-------- 'z' velocity--------------
+    v_z(+3,+1,+1) = + v1
+    v_z(+3,-1,+1) = + v1
+    v_z(+3,-1,-1) = - v1
+    v_z(+3,+1,-1) = - v1
+    v_z(+1,+3,+1) = - v1
+    v_z(+1,-3,+1) = - v1
+    v_z(+1,-3,-1) = + v1
+    v_z(+1,+3,-1) = + v1
+
+  END
   SUBROUTINE helical_decomposition(A_pos,A_neg)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------

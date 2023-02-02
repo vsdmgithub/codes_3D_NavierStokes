@@ -119,15 +119,6 @@ MODULE system_main
       CALL allocate_solver_system
       ! Allocates arrays for solver
 
-      ! CALL allocate_decorrelator
-      ! REF-> <<< system_decorrelator >>>
-
-      ! CALL allocate_strain_tensor
-      ! REF-> <<< system_advdeclaration >>>
-
-      ! CALL allocate_dissipation
-      ! REF-> <<< system_advdeclaration >>>
-
       RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
 
         CALL prepare_output
@@ -153,70 +144,31 @@ MODULE system_main
 
     IMPLICIT NONE
 
+		CALL allocate_chaos_arrays
+		! REF-> <<< system_basicdeclaration >>>
+
     v2_x = v_x
     v2_y = v_y
     v2_z = v_z
 
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    RK4_CHECK:IF ( ( solver_alg .EQ. 'rk') )  THEN
+		CALL create_perturbation_by_forcing
 
-      FORCING_CHECK_408: IF ( forcing_status .EQ. 1 ) THEN
+		CALL prepare_output_chaos
+	  ! REF-> <<< system_basicoutput >>>
 
-        CALL compute_forcing_in_modes_with_perturbation
-        ! REF-> <<< system_basicfunctions >>>
+		chaos_status = 1
 
-      END IF FORCING_CHECK_408
+    CALL allocate_decorrelator
+    ! REF-> <<< system_decorrelator >>>
 
-      CALL solver2_RK4_algorithm
-      ! REF-> <<< system_solver >>>
+    ! CALL allocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
 
-      FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
-
-        CALL compute_forcing_in_modes
-        ! REF-> <<< system_basicfunctions >>>
-
-      END IF FORCING_CHECK_401
-
-      CALL solver_RK4_algorithm
-      ! REF-> <<< system_solver >>>
-
-      GOTO 10101
-
-    END IF RK4_CHECK
-
-    AB4_CHECK:IF ( ( solver_alg .EQ. 'ab') )  THEN
-
-      FORCING_CHECK_404: IF ( forcing_status .EQ. 1 ) THEN
-
-        CALL compute_forcing_in_modes_with_perturbation
-        ! REF-> <<< system_basicfunctions >>>
-
-      END IF FORCING_CHECK_404
-
-      CALL solver2_AB4_algorithm
-      ! REF-> <<< system_solver >>>
-
-      FORCING_CHECK_403: IF ( forcing_status .EQ. 1 ) THEN
-
-        CALL compute_forcing_in_modes
-        ! REF-> <<< system_basicfunctions >>>
-
-      END IF FORCING_CHECK_403
-
-      CALL solver_AB4_algorithm
-      ! REF-> <<< system_solver >>>
-
-      GOTO 10101
-
-    END IF AB4_CHECK
-    ! Updates v_x,v_y,v_z for next time step
-
-    10101 CONTINUE
-    ! Jumps straight out of loop to here.
+    ! CALL allocate_dissipation
+    ! REF-> <<< system_advdeclaration >>>
 
     decor_old = zero + tol_double
+
     CALL compute_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
@@ -225,6 +177,34 @@ MODULE system_main
     WRITE(*,"(A22,ES8.2)")'DECOR_INITIAL:= ',decor_initial
 
 	END
+
+  SUBROUTINE create_perturbation_by_forcing
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! To create the perturbation
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    ! CALL compute_forcing_with_perturbation
+    ! REF-> <<< system_basicfunctions >>>
+
+    CALL solver2_RK4_algorithm
+    ! CALL solver2_AB4_algorithm
+    ! REF-> <<< system_solver >>>
+
+    CALL compute_random_forcing
+    ! REF-> <<< system_basicfunctions >>>
+
+    CALL solver_RK4_algorithm
+    ! CALL solver_AB4_algorithm
+    ! REF-> <<< system_solver >>>
+
+  END
 
   SUBROUTINE time_evolution
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -243,14 +223,68 @@ MODULE system_main
     !             S        T         A         R       T
     ! 8888888888888888888888888888888888888888888888888888888888888888
 
-    !  ---------------------------------------------------------------
+    ! ---------------------------------------------------------------
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
     LOOP_TIME_EVOLUTION: DO t_step = 0, t_step_total
 
+      CALL inter_analysis ! Does all analysis in between time steps. Including saving data
+
+      DEBUG_ERROR_CHECK:IF ( debug_error .EQ. 1 ) THEN
+        EXIT ! Meaning some error in computation.
+      END IF DEBUG_ERROR_CHECK
+
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      CALL solver_RK4_algorithm
+      ! CALL solver_AB4_algorithm
+      ! REF-> <<< system_solver >>>
+
+	  END DO LOOP_TIME_EVOLUTION
+
+	  CALL compute_system_details
+		! REF-> <<< system_basicdeclaration >>>
+
+    CALL write_simulation_end_details
+    ! REF-> <<< system_basicoutput >>>
+    ! Writes the parameters used in the simulation at end
+
+    ! _________________________________________________________________
+    ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+    !      E   U   L   E   R      E   V   O   L   U   T   I   O   N
+    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+    !                    E     N     D
+    ! 8888888888888888888888888888888888888888888888888888888888888888
+
+	END
+
+  SUBROUTINE time_evolution_chaos
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! Loop of time steps, where at each step the spectral velocities
+  ! are updated through any of the algoritm. Meanwhile, analysis and
+  ! outputs are printed respectively.
+	! Done for both systems
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+    !                 E   V   O   L   U   T   I   O   N
+    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+    !             S        T         A         R       T
+    ! 8888888888888888888888888888888888888888888888888888888888888888
+
+    !  ---------------------------------------------------------------
+    !             T   I   M   E       L  O  O  P
+    ! _________________________________________________________________
+		t_step = 0
+    LOOP_TIME_EVOLUTION_2: DO WHILE ( decor_normed .LT. 0.99D0 )
+
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
-
       DEBUG_ERROR_CHECK:IF ( debug_error .EQ. 1 ) THEN
         EXIT
         ! Meaning some error in computation.
@@ -259,35 +293,17 @@ MODULE system_main
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      RK4_CHECK:IF ( ( solver_alg .EQ. 'rk') )  THEN
+      CALL solver_RK4_algorithm
+      CALL solver2_RK4_algorithm
+      ! REF-> <<< system_solver >>>
 
-        CALL solver_RK4_algorithm
-        ! REF-> <<< system_solver >>>
+      ! CALL solver_AB4_algorithm
+      ! CALL solver2_AB4_algorithm
+      ! REF-> <<< system_solver >>>
 
-        ! CALL solver2_RK4_algorithm
-        ! REF-> <<< system_solver >>>
+		t_step = t_step + 1
+	  END DO LOOP_TIME_EVOLUTION_2
 
-        GOTO 10101
-
-      END IF RK4_CHECK
-
-      AB4_CHECK:IF ( ( solver_alg .EQ. 'ab') )  THEN
-
-        CALL solver_AB4_algorithm
-        ! REF-> <<< system_solver >>>
-
-        ! CALL solver2_AB4_algorithm
-        ! REF-> <<< system_solver >>>
-
-        GOTO 10101
-
-      END IF AB4_CHECK
-      ! Updates v_x,v_y,v_z for next time step
-
-    10101 CONTINUE
-    ! Jumps straight out of loop to here.
-
-  END DO LOOP_TIME_EVOLUTION
     ! _________________________________________________________________
 
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
@@ -317,55 +333,68 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL compute_spectral_data
+
+		CALL compute_temporal_data
     ! REF-> <<< system_basicfunctions >>>
+print*,diss_rate_viscous,diss_rate_ref,energy
+		IF ( chaos_status .EQ. 1 ) THEN
 
-    ! CALL compute_decorrelator
-    ! REF-> <<< system_decorrelator >>>
+	    CALL compute_decorrelator
+	    ! REF-> <<< system_decorrelator >>>
 
-    ! CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
+	    ! CALL compute_strain_tensor
+	    ! REF-> <<< system_advfunctions >>>
 
-    ! CALL compute_strainbased_lyapunov_and_timescales
-    ! REF-> <<< system_decorrelator >>>
+	    ! CALL compute_strainbased_lyapunov_and_timescales
+	    ! REF-> <<< system_decorrelator >>>
 
-    ! CALL compute_diffusive_lyapunov_and_timescales
-    ! REF-> <<< system_decorrelator >>>
+	    ! CALL compute_diffusive_lyapunov_and_timescales
+	    ! REF-> <<< system_decorrelator >>>
 
-    ! CALL compute_dissipation
-    ! REF-> <<< system_advfunctions >>>
+	    ! CALL compute_dissipation
+	    ! REF-> <<< system_advfunctions >>>
 
-    ! CALL write_decorrelator_growth
-    ! REF-> <<< system_decorrelator >>>
+	    CALL write_decorrelator_growth
+	    ! REF-> <<< system_decorrelator >>>
 
-    ! CALL write_decorrelator_statistics
-    ! REF-> <<< system_decorrelator >>>
+	    ! CALL write_decorrelator_statistics
+	    ! REF-> <<< system_decorrelator >>>
 
-    ! CALL compute_cross_correlation
-    ! REF-> <<< system_decorrelator >>>
+	    ! CALL compute_cross_correlation
+	    ! REF-> <<< system_decorrelator >>>
+
+		END IF
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
-      CALL compute_forcing_in_modes
-      ! REF-> <<< system_basicfunctions >>>
+      CALL compute_random_forcing
+			! IF ( chaos_status .EQ. 0 ) THEN
+	      ! CALL compute_random_forcing
+	      ! REF-> <<< system_basicfunctions >>>
+			! END IF
 
     END IF FORCING_CHECK_401
-
-    CALL write_temporal_data
-    ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
     SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
-      CALL write_spectral_data
-      ! REF-> <<< system_basicoutput >>>
+	    CALL compute_spectral_data
+	    ! REF-> <<< system_basicfunctions >>>
 
-	    CALL write_section('sec_velX',u_x(Nh,:,:))
-	    CALL write_section('sec_vorZ',w_uz(Nh,:,:))
+	    CALL write_spectral_data
 	    ! REF-> <<< system_basicoutput >>>
 
+	    ! CALL write_section('sec_velX',u_x(Nh,:,:))
+	    ! CALL write_section('sec_vorX',w_ux(0,:,:))
+	    CALL write_section('sec_vorZ',w_uz(0,:,:))
+	    ! REF-> <<< system_basicoutput >>>
+
+			IF ( chaos_status .EQ. 1 ) THEN
+		    CALL write_section('sec_per',diff_field(0,:,:))
+	    ! REF-> <<< system_basicoutput >>>
+			END IF
       !CALL write_lyapunov_field
       ! REF-> <<< system_decorrelator >>>
 
@@ -429,13 +458,6 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL compute_system_details
-    ! REF-> <<< system_basicdeclaration >>>
-
-    CALL write_simulation_end_details
-    ! REF-> <<< system_basicoutput >>>
-    ! Writes the parameters used in the simulation at end
-
     ! CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
@@ -462,8 +484,15 @@ MODULE system_main
     ! CALL deallocate_dissipation
     ! REF-> <<< system_advdeclaration >>>
 
-    ! CALL deallocate_decorrelator
-    ! REF-> <<< system_decorrelator >>>
+		IF ( chaos_status .EQ. 1 ) THEN
+
+	    CALL deallocate_decorrelator
+	    ! REF-> <<< system_decorrelator >>>
+
+			CALL deallocate_chaos_arrays
+	    ! REF-> <<< system_basicdeclaration >>>
+
+		END IF
 
     CALL deallocate_velocity
     ! REF-> <<< system_basicdeclaration >>>

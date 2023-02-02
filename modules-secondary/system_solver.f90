@@ -161,9 +161,15 @@ MODULE system_solver
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
-		dv1_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
-		dv1_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
-		dv1_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		IF ( forcing_status .EQ. 1 ) THEN
+			dv1_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + f_x )
+			dv1_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + f_y )
+			dv1_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + f_z )
+		ELSE
+			dv1_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+			dv1_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+			dv1_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		END IF
 
 	END
 
@@ -181,9 +187,15 @@ MODULE system_solver
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
-		dv2_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
-		dv2_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
-		dv2_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		IF ( forcing_status .EQ. 1 ) THEN
+			dv2_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + f_x )
+			dv2_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + f_y )
+			dv2_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + f_z )
+		ELSE
+			dv2_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+			dv2_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+			dv2_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		END IF
 
 	END
 
@@ -201,9 +213,15 @@ MODULE system_solver
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
-		dv3_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
-		dv3_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
-		dv3_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		IF ( forcing_status .EQ. 1 ) THEN
+			dv3_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + f_x )
+			dv3_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + f_y )
+			dv3_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + f_z )
+		ELSE
+			dv3_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+			dv3_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+			dv3_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		END IF
 
 	END
 
@@ -222,9 +240,15 @@ MODULE system_solver
 		!   3   D  -   E   U   L   E   R           E   Q   N.
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		! Get the crossproduce (v x w)_k in spectral space and project it with projection matrix and finally truncate it.
-		dv4_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
-		dv4_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
-		dv4_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		IF ( forcing_status .EQ. 1 ) THEN
+			dv4_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) + f_x )
+			dv4_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) + f_y )
+			dv4_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) + f_z )
+		ELSE
+			dv4_x = dt * ( truncator * ( proj_xx * vXw_x + proj_xy * vXw_y + proj_zx * vXw_z ) )
+			dv4_y = dt * ( truncator * ( proj_xy * vXw_x + proj_yy * vXw_y + proj_yz * vXw_z ) )
+			dv4_z = dt * ( truncator * ( proj_zx * vXw_x + proj_yz * vXw_y + proj_zz * vXw_z ) )
+		END IF
 
 	END
 

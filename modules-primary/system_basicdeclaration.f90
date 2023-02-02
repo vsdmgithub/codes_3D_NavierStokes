@@ -74,10 +74,6 @@ MODULE system_basicdeclaration
     READ( 1001, f_i4,   ADVANCE ='yes')  no_of_saves
     ! No of saves
 
-    READ( 1001, f_d8p4, ADVANCE ='yes')
-    READ( 1001, f_i4,   ADVANCE ='yes')  no_of_3D_saves
-    ! No of 3D saves
-
     CLOSE(1001)
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -133,7 +129,7 @@ MODULE system_basicdeclaration
     tot_modes         = N**3
 
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    ! F L U I D D A T A
+    ! F L U I D    D A T A
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     norm_factor       = one
@@ -148,18 +144,18 @@ MODULE system_basicdeclaration
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
     ! viscosity         = 4.0D0 * 1.0E-3 ! For N=256 ! THIS IS THE REFERENCE VISCOSITY
-    viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 1.0E-3
+    viscosity         = ( 128.0D0 / DBLE( N ) ) * viscosity * 2.0E-3
     ! Viscosity of the system
 
     k_int             = 2
     ! Integral scale wavnumber
 
-    k_for             = 4
+    k_for             = 3
     ! Wavenumbers below which forcing is implemented
 
     CALL find_diss_rate_ref( energy_initial, k_int, diss_rate_ref )
     ! Gives a estimate of dissipation rate fitting the Kolmogorov spectrum approximately
-    diss_rate_ref     = 0.50D0 ! For N=256
+    ! diss_rate_ref     = 0.50D0 ! For N=256
 
     diss_rate_viscous = diss_rate_ref
     ! Assuming viscous dissipation as reference for start
@@ -171,11 +167,17 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug       = 5
+    no_of_debug       = 10
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     simulation_status = 0
-    ! Meaning it is initializing , '1' means final, will be changed after the time_marching is DOne.
+    ! Meaning it is initializing , will be set to '1' at the end
+
+		turbulence_status = 0
+		! Preparing the state of turbulent flow with stationarity
+
+		chaos_status      = 0
+		! Once the perturbation is created, then set to '1'
 
     forcing_status    = 1
     ! Tick that controls the forcing, 1 - YES, 0 - NO
@@ -203,6 +205,9 @@ MODULE system_basicdeclaration
 
     debug_error       = 0
     ! some error found during debug (could be either nan or incomp)
+
+	  CALL compute_system_details
+		! REF-> <<< system_basicdeclaration >>>
 
 	END
 
@@ -268,7 +273,7 @@ MODULE system_basicdeclaration
     t_step_save       = t_step_total / no_of_saves
     ! Determines how many time steps after the save has to be made.
 
-    t_step_3D_save    = t_step_total / no_of_3D_saves
+    ! t_step_3D_save    = t_step_total / no_of_3D_saves
     ! Determines how many time steps after the PVD save has to be made.
 
     t_step_debug      = t_step_total / no_of_debug
@@ -493,6 +498,12 @@ MODULE system_basicdeclaration
     ALLOCATE(proj_xx(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_yy(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_zz(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(proj_xy(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_yz(0:Nh,-Nh:Nh-1,-Nh:Nh-1),proj_zx(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(density_modes(0:k_max))
+		IF ( forcing_status .EQ. 1 ) THEN
+	    ALLOCATE(f_x(    0:Nh,-Nh:Nh-1,-Nh:Nh-1),f_y(    0:Nh,-Nh:Nh-1,-Nh:Nh-1),f_z(    0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+			f_x = c0
+			f_y = c0
+			f_z = c0
+		END IF
     ! ALLOCATE(h_pos_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_pos_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_pos_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ! ALLOCATE(h_neg_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_neg_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),h_neg_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
 
@@ -510,9 +521,7 @@ MODULE system_basicdeclaration
     !  A  L  L  O  C  A  T  I  O  N    -   V  E  L  O  C  I  T  Y
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(u_x(0:N-1,0:N-1,0:N-1),u_y(0:N-1,0:N-1,0:N-1),u_z(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(u2_x(0:N-1,0:N-1,0:N-1),u2_y(0:N-1,0:N-1,0:N-1),u2_z(0:N-1,0:N-1,0:N-1))
     ALLOCATE(v_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ! ALLOCATE(v2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
     ALLOCATE(spectral_energy(0       :k_max))
     ALLOCATE(spectral_energy_avg(0   :k_max))
     ! ALLOCATE(spectral_enstrophy(0    :k_max))
@@ -538,6 +547,22 @@ MODULE system_basicdeclaration
 
   END
 
+  SUBROUTINE allocate_chaos_arrays
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to allocate arrays related to chaos measurement
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		ALLOCATE(u2_x(0:N-1,0:N-1,0:N-1),u2_y(0:N-1,0:N-1,0:N-1),u2_z(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(v2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+
+  END
+
 	SUBROUTINE deallocate_velocity
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
@@ -550,9 +575,7 @@ MODULE system_basicdeclaration
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE(v_x,v_y,v_z)
-		! DEALLOCATE(v2_x,v2_y,v2_z)
 		DEALLOCATE(u_x,u_y,u_z)
-		! DEALLOCATE(u2_x,u2_y,u2_z)
 		DEALLOCATE(spectral_energy)
     DEALLOCATE(spectral_energy_avg)
 		! DEALLOCATE(spectral_enstrophy)
@@ -591,6 +614,9 @@ MODULE system_basicdeclaration
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE(axis)
     DEALLOCATE(k_2,k_x,k_y,k_z)
+		IF ( forcing_status .EQ. 1 ) THEN
+	    DEALLOCATE(f_x,f_y,f_z)
+		END IF
     DEALLOCATE(truncator)
     DEALLOCATE(integrating_factor)
     DEALLOCATE(proj_xx,proj_yy,proj_zz)
@@ -603,6 +629,21 @@ MODULE system_basicdeclaration
       DEALLOCATE(fkx,fky,fkz)
     END IF FORCING_CHECK_202
 
+	END
+
+	SUBROUTINE deallocate_chaos_arrays
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to deallocate arrays
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		IMPLICIT NONE
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		!  D  E  A  L  L  O  C  A  T  I  O  N
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		DEALLOCATE(v2_x,v2_y,v2_z)
+		DEALLOCATE(u2_x,u2_y,u2_z)
 	END
 
 END MODULE system_basicdeclaration

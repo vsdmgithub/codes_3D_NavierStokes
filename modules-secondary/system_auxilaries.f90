@@ -63,7 +63,7 @@ MODULE system_auxilaries
 		INTEGER(KIND=4),INTENT(IN)::k_int
 		DOUBLE PRECISION::adjust_factor
 
-		adjust_factor = 3.0D0
+		adjust_factor = 6.0D0
 		! Refined adjusting factor
 
 		ds = twothird * en / C_kolmo
@@ -308,7 +308,7 @@ MODULE system_auxilaries
 		DO ind = 1, Z
 
 			dist( ind ) = DSQRT( - two * DLOG( u_dist_1( ind ) ) ) * DCOS( two_pi * u_dist_2( ind ) )
-			dist( ind ) = dist( ind ) * std + avg  
+			dist( ind ) = dist( ind ) * std + avg
 
 		END DO
 

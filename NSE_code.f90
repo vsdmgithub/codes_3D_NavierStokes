@@ -57,6 +57,10 @@ USE system_timer
 	! LOCAL VARIABLES
 	! !!!!!!!!!!!!!!!!!!!!!!!!!
 
+	CALL start_run_timer
+	! Clocks the date and time - PROGRAM STARTS
+	! REF-> <<< system_timer >>>
+
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  I  N  I  T  I  A  L  I  Z  A  T  I  O  N
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,13 +73,8 @@ USE system_timer
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
 
-  CALL compute_system_details
-	! REF-> <<< system_basicdeclaration >>>
-
 	CALL init_global_arrays
 	! REF-> <<< system_basicdeclaration >>>
-
-	! We get all the variables, and global arrays ready allocated
 
 	test_code		= 'n'
 	! Simple way to ON or OFF the testing of the simulation - Measures the time for evolution
@@ -84,10 +83,6 @@ USE system_timer
 	! Simple way to ON or OFF the running of the simulation.
 
   CODE_EVALUTION:IF ( run_code .EQ. 'y' ) THEN
-
-		CALL start_run_timer
-		! Clocks the date and time - PROGRAM STARTS
-		! REF-> <<< system_timer >>>
 
     CALL pre_analysis
     ! Allocating the evolution arrays, if everything is set, 'check_status' will be 1.
@@ -100,11 +95,15 @@ USE system_timer
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
 			WRITE(*,*)
 
+      CALL time_evolution
+      ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
+			! REF-> <<< system_main >>>
+
 			! CALL prepare_perturbation
 			! Makes a copy and pertubs by one time step evolution with and without forcing for them.
 			! REF-> <<< system_main >>>
 
-      CALL time_evolution
+      ! CALL time_evolution_chaos
       ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
 			! REF-> <<< system_main >>>
 
@@ -127,10 +126,6 @@ USE system_timer
 
     END IF
 
-		CALL end_run_timer
-		! Clocks the date and time - PROGRAM STARTS
-		! REF-> <<< system_timer >>>
-
   END IF CODE_EVALUTION
 
 	TEST_EVOLUTION:IF ( test_code .EQ. 'y' ) THEN
@@ -148,5 +143,10 @@ USE system_timer
 		! REF-> <<< system_test >>>
 
 	END IF TEST_EVOLUTION
+
+	CALL end_run_timer
+	! Clocks the date and time - PROGRAM STARTS
+	! REF-> <<< system_timer >>>
+
 
 END PROGRAM NSE

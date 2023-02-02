@@ -40,6 +40,7 @@ MODULE system_basicoutput
   CHARACTER(LEN =40) ::path_dir
   CHARACTER(LEN =40) ::type_sim
   CHARACTER(LEN =60) ::name_sim
+  CHARACTER(LEN =60) ::dir_name
   CHARACTER(LEN =100)::file_address
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
@@ -78,9 +79,11 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-   path_dir    =   '../data_chaos/'
+		path_dir    =   '../data/'
     ! path_dir    =   '../NSE_data_eulerianchaos/'
     ! path of the main directory relative to this file.
+
+		dir_name   =  'turb/'
 
     ! sub_dir_3D  =   '3D_data/'
     ! Sub directory name to store 3D data - large file sizes.
@@ -91,7 +94,7 @@ MODULE system_basicoutput
     sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    ! sub_dir_pdf =   'pdf/'
+    sub_dir_pdf =   'pdf/'
     ! Sub directory name to store pdf
 
     type_sim    =   'N' // TRIM( ADJUSTL( N_char ) ) // '/'
@@ -106,7 +109,7 @@ MODULE system_basicoutput
     ! Use this to give CUSTOM SIMULATION NAME
 
     file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) //  &
-                     TRIM( ADJUSTL( name_sim ) ) // '/'
+                     TRIM( ADJUSTL( name_sim ) ) // '/' // TRIM( ADJUSTL( dir_name ) )
     ! Address should be added to all file names, if needed sub-dir can be declared later and appended to
     ! this address
 
@@ -125,6 +128,9 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) )
 
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) )  &
+                         // TRIM( ADJUSTL( name_sim ) ) // '/' )
+
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
@@ -133,10 +139,34 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
-    ! CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) )
-
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error
+
+	END
+
+  SUBROUTINE prepare_output_chaos
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Name the folders, create them, open files to write system_basicoutput .
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT  NONE
+
+		dir_name   =  'chaos/'
+
+    file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) // &
+                     TRIM( ADJUSTL( name_sim ) ) // '/' // TRIM( ADJUSTL( dir_name ) )
+    ! Address should be added to all file names, if needed sub-dir can be declared later and appended to
+    ! this address
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) )
 
 	END
 
@@ -206,6 +236,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)") 'Trunc. Mode ',         '= ',k_G
     WRITE(233,"(A20,A2,I8)") 'Kolmo. Mode ',         '= ',k_kol
     WRITE(233,"(A20,A2,I8)") 'Forcing. Mode ',       '= ',k_for
+    WRITE(233,"(A20,A3,I9)") 'Modes forced. ',       '= ',tot_forced_modes
     WRITE(233,"(A20,A2,I8)") 'Integral. Mode ',      '= ',k_int
     WRITE(233,"(A20,A2,F8.2)") 'Resolving power',    '= ',resolving_power
     WRITE(233,"(A20,A2,I8)") 'CFL ratio ',           '= ',CFL_system
@@ -244,6 +275,7 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,I8)") 'Trunc. Mode ',         '= ',k_G
     WRITE(*,"(A20,A2,I8)") 'Kolmo. Mode ',         '= ',k_kol
     WRITE(*,"(A20,A2,I8)") 'Forcing. Mode ',       '= ',k_for
+    WRITE(*,"(A20,A3,I9)") 'Modes forced. ',       '= ',tot_forced_modes
     WRITE(*,"(A20,A2,I8)") 'Integral. Mode ',      '= ',k_int
     WRITE(*,"(A20,A2,F8.2)") 'Resolving power',    '= ',resolving_power
     WRITE(*,"(A20,A2,I8)") 'CFL ratio ',           '= ',CFL_system
@@ -301,6 +333,7 @@ MODULE system_basicoutput
     WRITE(234,"(A20,A2,I8)") 'Trunc. Mode ',        '= ',k_G
     WRITE(234,"(A20,A2,I8)") 'Kolmo. Mode ',        '= ',k_kol
     WRITE(234,"(A20,A2,I8)") 'Forcing. Mode ',      '= ',k_for
+    WRITE(234,"(A20,A3,I9)") 'Modes forced. ',      '= ',tot_forced_modes
     WRITE(234,"(A20,A2,I8)") 'Integral. Mode ',     '= ',k_int
     WRITE(234,"(A20,A2,F8.2)") 'Resolving power',   '= ',resolving_power
     WRITE(234,"(A20,A2,I8)") 'CFL ratio ',          '= ',CFL_system
@@ -340,6 +373,7 @@ MODULE system_basicoutput
     WRITE(*,"(A21,A3,I9)") 'Trunc. Mode ',        '= ',k_G
     WRITE(*,"(A21,A3,I9)") 'Kolmo. Mode ',        '= ',k_kol
     WRITE(*,"(A21,A3,I9)") 'Forcing. Mode ',      '= ',k_for
+    WRITE(*,"(A21,A3,I9)") 'Modes forced. ',      '= ',tot_forced_modes
     WRITE(*,"(A21,A3,I9)") 'Integral. Mode ',     '= ',k_int
     WRITE(*,"(A21,A3,F9.3)") 'Resolving power',   '= ',resolving_power
     WRITE(*,"(A21,A3,I9)") 'CFL ratio ',          '= ',CFL_system
@@ -389,8 +423,7 @@ MODULE system_basicoutput
     WRITE(4004,f_d32p17,ADVANCE ='no')  enstrophy
     ! WRITE(4004,f_d32p17,ADVANCE ='no')  energy_2
     WRITE(4004,f_d32p17,ADVANCE ='no')  helicity
-    WRITE(4004,f_d32p17,ADVANCE ='no')  diss_rate
-    WRITE(4004,f_d32p17,ADVANCE ='yes')  diss_rate_viscous
+    WRITE(4004,f_d32p17,ADVANCE ='yes')  diss_rate
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4004)

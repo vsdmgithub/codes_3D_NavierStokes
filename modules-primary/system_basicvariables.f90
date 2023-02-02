@@ -68,7 +68,7 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::diss_rate_ref
   DOUBLE PRECISION ::force_factor
   DOUBLE PRECISION ::energy_initial
-  DOUBLE PRECISION ::decor
+  DOUBLE PRECISION ::decor,decor_normed
   DOUBLE PRECISION ::decor_initial,decor_final
   ! _________________________
   ! FLUID FUNCTIONS
@@ -87,8 +87,8 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::enstrophy
   DOUBLE PRECISION ::energy_mode
   DOUBLE PRECISION ::enstrophy_mode
-  DOUBLE PRECISION ::helicity_mode
-  DOUBLE COMPLEX   ::helicity_mode_complex
+  ! DOUBLE PRECISION ::helicity_mode
+  ! DOUBLE COMPLEX   ::helicity_mode_complex
   ! _________________________
   ! MISCELLANEOUS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -107,6 +107,7 @@ MODULE system_basicvariables
   ! DEBUGGING
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   INTEGER(KIND=4)  ::simulation_status,precheck_status,nan_count
+  INTEGER(KIND=4)  ::turbulence_status,chaos_status
   INTEGER(KIND=4)  ::incomp_error,nan_error,viscosity_error,debug_error
   INTEGER(KIND=4)  ::no_of_debug
   ! _________________________________________
@@ -125,6 +126,7 @@ MODULE system_basicvariables
   INTEGER(KIND=4) ,DIMENSION(:),    ALLOCATABLE ::fkx,fky,fkz              ! List of forcing wavevectors
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::v_x,v_y,v_z              ! Spectral velocity (updated every time step)
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::v2_x,v2_y,v2_z              ! Spectral velocity (updated every time step)
+  DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::f_x,f_y,f_z
   DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::w_vx,w_vy,w_vz           ! Spectral vorticity(updated every time step)
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_x,k_y,k_z               ! Wavevector components
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::k_2                       ! Spectral laplacian factor

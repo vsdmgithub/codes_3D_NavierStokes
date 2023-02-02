@@ -99,19 +99,11 @@ MODULE system_basicfunctions
     ! spectral_helicity   = zero
     ! Reset the array
 
-    energy              = zero
-    enstrophy           = zero
-    helicity            = zero
-    ! Reset the variables
-
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   S  P  E  C  T  R  U  M     C  A   L   C.
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! Gets the energy, enstrophy, helicity in that particular mode (i_x,i_y,i_z)
     ! Keeps adding energy to that particular shell (|k| fixed), from all solid angles
-
-    CALL compute_vorticity
-    ! Computes vorticity in spectral space
 
     DO j_x =    1 , k_G
     DO j_y = - k_G, k_G
@@ -219,28 +211,44 @@ MODULE system_basicfunctions
 
     END DO
 
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  N  E  T     E , Z , H , D
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    CALL compute_energy
-    CALL compute_enstrophy
-    CALL compute_helicity
     ! energy    = SUM( spectral_energy(    : ) )
     ! enstrophy = SUM( spectral_enstrophy( : ) )
     ! helicity  = SUM( spectral_helicity(  : ) )
     ! Computes the net energy, enstrophy, helicity
 
-    diss_rate         = ( energy_initial - energy ) / dt
+  END
+
+  SUBROUTINE compute_temporal_data
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This calculates energy, enstrophy and helicity
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  IMPLICIT NONE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  N  E  T     E , Z , H , D
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL compute_vorticity
+    ! Computes vorticity in spectral space
+
+    CALL compute_energy
+    CALL compute_enstrophy
+    CALL compute_helicity
+
+    diss_rate         = ( energy_old - energy ) / dt
     energy_old        = energy
     ! Estimates the dissipation rate of energy
 
     diss_rate_viscous = two * viscosity * enstrophy
     ! Estimates the viscous dissipation from enstrophy
 
+    CALL write_temporal_data
+    ! REF-> <<< system_basicoutput >>>
+
   END
 
-  SUBROUTINE compute_forcing_in_modes
+  SUBROUTINE compute_forcing
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -253,7 +261,6 @@ MODULE system_basicfunctions
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     INTEGER(KIND=4)::ct
-    DOUBLE PRECISION::rd1,rd2,std,avg,noise
     DOUBLE PRECISION::pre_factor_forcing
 
     energy_forcing_modes = zero
@@ -266,30 +273,23 @@ MODULE system_basicfunctions
       energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                           CDABS( v_z( j_x, j_y, j_z ) ) ** two )
-      ! energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
-      !                                                     CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
-      !                                                     CDABS( v2_z( j_x, j_y, j_z ) ) ** two )
       ELSE
       energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
                                                      CDABS( v_z( j_x, j_y, j_z ) ) ** two
-      ! energy_forcing_modes = energy_forcing_modes +  CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
-      !                                                CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
-      !                                                CDABS( v2_z( j_x, j_y, j_z ) ) ** two
       END IF KX_EQ_ZERO_CHECK
 
     END DO LOOP_FORCING_MODES_301
 
-    ! energy_forcing_modes = energy_forcing_modes / two
+		pre_factor_forcing  = diss_rate_viscous  * ( ( one - ( energy - energy_initial ) ) ** two )
+    ! Matches with the viscous dissipation, ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is ! decreasing, it would decrease the forcing.
 
-		pre_factor_forcing   = diss_rate_viscous + diss_rate
-    ! Matches with the visous dissipation
-    ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
-    ! decreasing, it would decrease the forcing.
+    IF ( energy_forcing_modes .GT. tol_double ) THEN
+      pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
+    ELSE
+      pre_factor_forcing = zero ! To prevent NaN
+    END IF
 
-    pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
-
-    ! pre_factor_forcing = 0.710D0
     LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
       j_x = fkx( ct )
       j_y = fky( ct )
@@ -299,7 +299,56 @@ MODULE system_basicfunctions
 
   END
 
-  SUBROUTINE compute_forcing_in_modes_with_perturbation
+  SUBROUTINE compute_random_forcing
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! To assign values to the modes to force energy
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4)::ct
+    DOUBLE PRECISION::phi
+    DOUBLE COMPLEX::r_x,r_y,r_z
+    DOUBLE PRECISION::pre_factor_forcing,norm
+
+		! pre_factor_forcing = diss_rate_viscous  * ( ( one - ( energy - energy_initial ) ) ** 4.0D0 )
+		pre_factor_forcing = diss_rate_viscous * 1.05D0
+
+    pre_factor_forcing = DSQRT( pre_factor_forcing / ( tot_forced_modes * dt ) )
+
+    LOOP_FORCING_MODES_309: DO ct = 1, tot_forced_modes
+
+      j_x = fkx( ct )
+      j_y = fky( ct )
+      j_z = fkz( ct )
+
+      r_x = k_y( j_x, j_y, j_z ) * DCONJG( v_z( j_x, j_y, j_z ) ) &
+          - k_z( j_x, j_y, j_z ) * DCONJG( v_y( j_x, j_y, j_z ) )
+      r_y = k_z( j_x, j_y, j_z ) * DCONJG( v_x( j_x, j_y, j_z ) ) &
+          - k_x( j_x, j_y, j_z ) * DCONJG( v_z( j_x, j_y, j_z ) )
+      r_z = k_x( j_x, j_y, j_z ) * DCONJG( v_y( j_x, j_y, j_z ) ) &
+          - k_y( j_x, j_y, j_z ) * DCONJG( v_x( j_x, j_y, j_z ) )
+      norm = DSQRT( CDABS( r_x ) ** two + CDABS( r_y ) ** two + CDABS( r_z ) ** two )
+      r_x = r_x / norm
+      r_y = r_y / norm
+      r_z = r_z / norm
+
+      CALL RANDOM_NUMBER(phi)
+      phi     = two_pi * phi
+
+      f_x( j_x, j_y, j_z ) = pre_factor_forcing * DCMPLX( DCOS( phi ), DSIN( phi ) ) * r_x
+      f_y( j_x, j_y, j_z ) = pre_factor_forcing * DCMPLX( DCOS( phi ), DSIN( phi ) ) * r_y
+      f_z( j_x, j_y, j_z ) = pre_factor_forcing * DCMPLX( DCOS( phi ), DSIN( phi ) ) * r_z
+
+    END DO LOOP_FORCING_MODES_309
+
+  END
+  SUBROUTINE compute_forcing_with_perturbation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -322,30 +371,33 @@ MODULE system_basicfunctions
       j_y = fky( ct )
       j_z = fkz( ct )
       KX_EQ_ZERO_CHECK: IF ( j_x .EQ. 0 ) THEN
-      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
-                                                          CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
-                                                          CDABS( v_z( j_x, j_y, j_z ) ) ** two )
+      energy_forcing_modes = energy_forcing_modes + hf *( CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+                                                          CDABS( v2_z( j_x, j_y, j_z ) ) ** two )
       ELSE
-      energy_forcing_modes = energy_forcing_modes +  CDABS( v_x( j_x, j_y, j_z ) ) ** two + &
-                                                     CDABS( v_y( j_x, j_y, j_z ) ) ** two + &
-                                                     CDABS( v_z( j_x, j_y, j_z ) ) ** two
+      energy_forcing_modes = energy_forcing_modes +  CDABS( v2_x( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v2_y( j_x, j_y, j_z ) ) ** two + &
+                                                     CDABS( v2_z( j_x, j_y, j_z ) ) ** two
       END IF KX_EQ_ZERO_CHECK
 
     END DO LOOP_FORCING_MODES_301
 
-		pre_factor_forcing = diss_rate_viscous + diss_rate
-    ! Matches with the visous dissipation
-    ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is
-    ! decreasing, it would decrease the forcing.
+		pre_factor_forcing  = diss_rate_viscous  * ( ( one - ( energy - energy_initial ) ) ** two )
+    ! Matches with the viscous dissipation, ! If still the energy is decreasing, then diss_rate would increase the forcing , and if energy is ! decreasing, it would decrease the forcing.
+
     pre_factor_forcing = pre_factor_forcing / ( two * energy_forcing_modes )
 
-    ! pre_factor_forcing = 0.710D0
-    LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes
+    LOOP_FORCING_MODES_302: DO ct = 1, tot_forced_modes - 1
       j_x = fkx( ct )
       j_y = fky( ct )
       j_z = fkz( ct )
-      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) - 0.8D0 * pre_factor_forcing ) * dt )
+      integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) -  pre_factor_forcing ) * dt )
     END DO LOOP_FORCING_MODES_302
+    ct = tot_forced_modes
+    j_x = fkx( ct )
+    j_y = fky( ct )
+    j_z = fkz( ct )
+    integrating_factor( j_x, j_y, j_z ) = DEXP( - ( viscosity * k_2( j_x, j_y, j_z ) ) * dt )
 
   END
 
@@ -464,7 +516,7 @@ MODULE system_basicfunctions
     END DO
     END DO
 
-    k_dot_v_norm = DSQRT( k_dot_v_norm )
+    ! k_dot_v_norm = DSQRT( k_dot_v_norm )
 
     COMPRESSIBILITY_CHECK_101: IF (k_dot_v_norm .GT. tol_float ) THEN
 

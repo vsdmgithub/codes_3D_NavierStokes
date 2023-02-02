@@ -76,21 +76,21 @@ MODULE system_decorrelator
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(diff_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lyp_str_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lam_str_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lyp_eta_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lam_eta_field(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(lyp_str_val(lyp_bins),pdf_lyp_str(lyp_bins))
-    ALLOCATE(lyp_eta_val(lyp_bins),pdf_lyp_eta(lyp_bins))
-    ALLOCATE(lam_str_val(lyp_bins),pdf_lam_str(lyp_bins))
-    ALLOCATE(lam_eta_val(lyp_bins),pdf_lam_eta(lyp_bins))
+    ! ALLOCATE(lyp_str_field(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(lam_str_field(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(lyp_eta_field(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(lam_eta_field(0:N-1,0:N-1,0:N-1))
+    ! ALLOCATE(lyp_str_val(lyp_bins),pdf_lyp_str(lyp_bins))
+    ! ALLOCATE(lyp_eta_val(lyp_bins),pdf_lyp_eta(lyp_bins))
+    ! ALLOCATE(lam_str_val(lyp_bins),pdf_lam_str(lyp_bins))
+    ! ALLOCATE(lam_eta_val(lyp_bins),pdf_lam_eta(lyp_bins))
 
-    m_size = 20
-    ALLOCATE(gen_decor(m_size),m_val(m_size))
-
-    DO m_ind = 1,m_size
-      m_val( m_ind )            = zero + DBLE( m_ind ) * 0.4D0
-    END DO
+    ! m_size = 20
+    ! ALLOCATE(gen_decor(m_size),m_val(m_size))
+    !
+    ! DO m_ind = 1,m_size
+    !   m_val( m_ind )            = zero + DBLE( m_ind ) * 0.4D0
+    ! END DO
 
   END
 
@@ -119,10 +119,11 @@ MODULE system_decorrelator
     decor_old       = decor
     ! copying the old decorrelator
 
-    CALL write_section('decor',diff_field( 0, : , : ) )
+    decor_normed    = decor / ( two * energy_initial )
+    ! CALL write_section('decor',diff_field( 0, : , : ) )
     ! REF <<< system_basicoutput >>>
 
-    CALL compute_generalized_decorrelator
+    ! CALL compute_generalized_decorrelator
 
   END
 
@@ -307,15 +308,15 @@ MODULE system_decorrelator
     !  D E - A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE(diff_field)
-    DEALLOCATE(lyp_str_field)
-    DEALLOCATE(lam_str_field)
-    DEALLOCATE(lyp_eta_field)
-    DEALLOCATE(lam_eta_field)
-    DEALLOCATE(lyp_str_val, pdf_lyp_str)
-    DEALLOCATE(lyp_eta_val, pdf_lyp_eta)
-    DEALLOCATE(lam_str_val, pdf_lam_str)
-    DEALLOCATE(lam_eta_val, pdf_lam_eta)
-    DEALLOCATE(m_val,gen_decor)
+    ! DEALLOCATE(lyp_str_field)
+    ! DEALLOCATE(lam_str_field)
+    ! DEALLOCATE(lyp_eta_field)
+    ! DEALLOCATE(lam_eta_field)
+    ! DEALLOCATE(lyp_str_val, pdf_lyp_str)
+    ! DEALLOCATE(lyp_eta_val, pdf_lyp_eta)
+    ! DEALLOCATE(lam_str_val, pdf_lam_str)
+    ! DEALLOCATE(lam_eta_val, pdf_lam_eta)
+    ! DEALLOCATE(m_val,gen_decor)
 
   END
 
@@ -337,8 +338,8 @@ MODULE system_decorrelator
       OPEN(unit = 4002, file = file_name )
     END IF
 
-    lyp_str_avg = SUM(lyp_str_field) / N3
-    lyp_eta_avg = SUM(lyp_eta_field) / N3
+    ! lyp_str_avg = SUM(lyp_str_field) / N3
+    ! lyp_eta_avg = SUM(lyp_eta_field) / N3
 
     WRITE(4002,f_d8p4,ADVANCE   ='no') time_now
     WRITE(4002,f_d32p17,ADVANCE ='no') decor
