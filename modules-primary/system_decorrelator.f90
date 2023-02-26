@@ -12,7 +12,7 @@
 
 ! ##################
 ! MODULE: system_decorrelator
-! LAST MODIFIED: 24 SEPT 2021
+! LAST MODIFIED: 20 FEBRAURY 2023
 ! ##################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -32,33 +32,17 @@ MODULE system_decorrelator
   USE system_advfunctions
 
   IMPLICIT NONE
-  DOUBLE PRECISION::decor_old,lyp_decor
-  DOUBLE PRECISION::lyp_max,lyp_min,lyp_binsize
-  DOUBLE PRECISION::lyp_str_avg,lyp_eta_avg
-  DOUBLE PRECISION::lam_str_avg,lam_eta_avg
-  DOUBLE PRECISION::lam_str_max,lam_eta_max
-  DOUBLE PRECISION::lam_str_min,lam_eta_min
-  DOUBLE PRECISION::lyp_str_max,lyp_eta_max
-  DOUBLE PRECISION::lyp_str_min,lyp_eta_min
-  DOUBLE PRECISION::lyp_str_binsize,lyp_eta_binsize
-  DOUBLE PRECISION::lam_str_binsize,lam_eta_binsize
-  ! DOUBLE PRECISION::ccrel_str_eta,ccrel_ds_lyp_eta
-  ! DOUBLE PRECISION::ccrel_ds_lyp_str,ccrel_lyp_str_vx_alp,ccrel_ds_vx_alp
-  INTEGER(KIND=4) ::m_ind,m_size
-  INTEGER(KIND=4) ::lyp_bins
-  INTEGER(KIND=4) ::lyp_str_bin_count,lyp_eta_bin_count
-  INTEGER(KIND=4) ::lam_str_bin_count,lam_eta_bin_count
+  DOUBLE PRECISION::dec_old,dec_dot_str,dec_dot_vis
+  DOUBLE PRECISION::lyp_max,lyp_min,lyp_bin_size,dec_dot
+  DOUBLE PRECISION::lyp_avg,lyp_std
+  INTEGER(KIND=4) ::m_ind,m_siz
+  INTEGER(KIND=4) ::num_bin_lyp
   ! _________________________________________
   ! REAL SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::diff_field
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::lyp_str_field,lyp_eta_field
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::lam_str_field,lam_eta_field
-  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lyp_str_val,pdf_lyp_str
-  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lyp_eta_val,pdf_lyp_eta
-  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lam_str_val,pdf_lam_str
-  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::lam_eta_val,pdf_lam_eta
-  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::m_val,gen_decor
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::Dec_fld,Lyp_fld
+  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::Lyp_val,Lyp_pdf
+  DOUBLE PRECISION,DIMENSION(:)    ,ALLOCATABLE ::Mom_val,Lyp_fun,Lyp_mom
 
   CONTAINS
 
@@ -71,26 +55,23 @@ MODULE system_decorrelator
 
     IMPLICIT NONE
 
-    lyp_bins = ( N / 128 ) * 100
+    num_bin_lyp    = CEILING( ( DBLE(N) / 128.0D0 ) * 100.0D0 )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE(diff_field(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(lyp_str_field(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(lam_str_field(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(lyp_eta_field(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(lam_eta_field(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(lyp_str_val(lyp_bins),pdf_lyp_str(lyp_bins))
-    ! ALLOCATE(lyp_eta_val(lyp_bins),pdf_lyp_eta(lyp_bins))
-    ! ALLOCATE(lam_str_val(lyp_bins),pdf_lam_str(lyp_bins))
-    ! ALLOCATE(lam_eta_val(lyp_bins),pdf_lam_eta(lyp_bins))
+    ALLOCATE(Dec_fld(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(Lyp_fld(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(Lyp_val(num_bin_lyp),Lyp_pdf(num_bin_lyp))
 
-    ! m_size = 20
-    ! ALLOCATE(gen_decor(m_size),m_val(m_size))
-    !
-    ! DO m_ind = 1,m_size
-    !   m_val( m_ind )            = zero + DBLE( m_ind ) * 0.4D0
-    ! END DO
+    CALL allocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
+
+    m_siz = 40
+    ALLOCATE(Lyp_fun(m_siz),Mom_val(m_siz),Lyp_mom(m_siz))
+
+    DO m_ind = 1,m_siz
+      Mom_val( m_ind )            = -4.0D0 + m_ind * 0.2D0
+    END DO
 
   END
 
@@ -106,28 +87,23 @@ MODULE system_decorrelator
     !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D E C O R R E L A T O R
     !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL compute_lyapunov_field
 
-    diff_field      = hf * ( ( u2_x - u_x ) ** two + ( u2_y - u_y ) ** two + ( u2_z - u_z ) ** two )
-    ! Matrix of decorelation
-
-    decor           = SUM( diff_field ) / N3
-    ! Global decorrelation
-
-    lyp_decor       = ( DLOG( decor ) - DLOG( decor_old ) ) / dt
+    lyp_decor   = ( DLOG( dec ) - DLOG( dec_old ) ) / dt
     ! Finding the exponent at which it grows at 't'
 
-    decor_old       = decor
+    dec_old     = dec
     ! copying the old decorrelator
 
-    decor_normed    = decor / ( two * energy_initial )
-    ! CALL write_section('decor',diff_field( 0, : , : ) )
-    ! REF <<< system_basicoutput >>>
+    lyp_dec_str = dec_dot_str / dec
+    lyp_dec_vis = dec_dot_vis / dec
+    lyp_dec_cal = dec_dot / dec
 
-    ! CALL compute_generalized_decorrelator
+    CALL write_decorrelator_growth
 
   END
 
-  SUBROUTINE compute_generalized_decorrelator
+  SUBROUTINE compute_generalized_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -139,56 +115,29 @@ MODULE system_decorrelator
     !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  G E N E R A L I Z E D        D E C O R R E L A T O R
     !  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    LOOP_MOMENTS: DO m_ind = 1, m_size
+    LOOP_MOMENTS: DO m_ind = 1, m_siz
 
-      gen_decor( m_ind ) = SUM( ( diff_field ) ** ( hf * m_val( m_ind ) ) ) / N3
+      Lyp_fun( m_ind ) = DLOG( SUM( DEXP( Lyp_fld * Mom_val( m_ind ) ) ) / N3 )
+      Lyp_mom( m_ind ) = SUM( DABS( Lyp_fld ) ** Mom_val( m_ind ) ) / N3
 
     END DO LOOP_MOMENTS
 
-    CALL write_generalized_decorrelator_growth
+    CALL write_generalized_lyapunov
     ! Writes all the generalized decorrelators
 
   END
 
-  SUBROUTINE compute_strainbased_lyapunov_and_timescales
+  SUBROUTINE compute_lyapunov_field
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
-  ! CALL this to compute the lyapunov and timescales for strain based growth
+  ! CALL this to compute the lyapunov from strain and viscosity
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
-
-    lyp_str_field = -( ( ( u_x - u2_x )**two ) * s_xx + ( ( u_y - u2_y )**two ) * s_yy + ( ( u_z - u2_z )**two ) * s_zz + &
-              two * ( ( u_x - u2_x ) * s_xy * ( u_y - u2_y ) + &
-                      ( u_y - u2_y ) * s_yz * ( u_z - u2_z ) + &
-                      ( u_z - u2_z ) * s_zx * ( u_x - u2_x ) ) )
-    ! The strain based lyapunov field
-
-    lam_str_field = ( lyp_str_field ) / ( diff_field )
-    ! The strain based timescales field
-
-    lyp_str_field = lyp_str_field / decor
-    ! The strain based lyapunov field normalized with the decorrelator
-
-    ! CALL write_section('lyp_str',lyp_str_field( 0, : , : ) )
-    ! REF <<< system_basicoutput >>>
-  END
-
-  SUBROUTINE compute_diffusive_lyapunov_and_timescales
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to compute the lyapunov and timescales for diffusive spread
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-    ! _________________________
-    ! LOCAL VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    INTEGER(KIND=4)::bin_count_2
     INTEGER(KIND=4)::ip_x,ip_y,ip_z
     INTEGER(KIND=4)::im_x,im_y,im_z
+    DOUBLE PRECISION::strain_growth,viscous_growth
     DOUBLE PRECISION::df_x, df_y, df_z
     DOUBLE PRECISION::df_x_px, df_y_px, df_z_px
     DOUBLE PRECISION::df_x_py, df_y_py, df_z_py
@@ -196,11 +145,41 @@ MODULE system_decorrelator
     DOUBLE PRECISION::df_x_mx, df_y_mx, df_z_mx
     DOUBLE PRECISION::df_x_my, df_y_my, df_z_my
     DOUBLE PRECISION::df_x_mz, df_y_mz, df_z_mz
-    DOUBLE PRECISION::decor_eta_val
+
+    CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
+    dec         = zero
+    dec_dot_str = zero
+    dec_dot_vis = zero
+    lyp_avg     = zero
+    lyp_std     = zero
 
     DO i_x = 0 , N - 1
     DO i_y = 0 , N - 1
     DO i_z = 0 , N - 1
+
+    Dec_fld( i_x, i_y, i_z )= hf*( (Ub_x(i_x,i_y,i_z)-U_x(i_x,i_y,i_z))**two + &
+                                   (Ub_y(i_x,i_y,i_z)-U_y(i_x,i_y,i_z))**two + &
+                                   (Ub_z(i_x,i_y,i_z)-U_z(i_x,i_y,i_z))**two )
+    ! Matrix of decorelation
+
+    DIFF_FIELD_CHECK: IF( Dec_fld( i_x, i_y, i_z ) .GT. zero ) THEN
+
+      dec           = dec + Dec_fld( i_x, i_y, i_z )
+      ! Global decorrelation
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  STRAIN BASED TIMESCALES FIELD
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+      strain_growth = -( ((U_x(i_x,i_y,i_z)-Ub_x(i_x,i_y,i_z))**two)*s_xx(i_x,i_y,i_z)+&
+                         ((U_y(i_x,i_y,i_z)-Ub_y(i_x,i_y,i_z))**two)*s_yy(i_x,i_y,i_z)+&
+                         ((U_z(i_x,i_y,i_z)-Ub_z(i_x,i_y,i_z))**two)*s_zz(i_x,i_y,i_z)+&
+      two*( (U_x(i_x,i_y,i_z)-Ub_x(i_x,i_y,i_z))*s_xy(i_x,i_y,i_z)*(U_y(i_x,i_y,i_z)-Ub_y(i_x,i_y,i_z))+&
+            (U_y(i_x,i_y,i_z)-Ub_y(i_x,i_y,i_z))*s_yz(i_x,i_y,i_z)*(U_z(i_x,i_y,i_z)-Ub_z(i_x,i_y,i_z))+&
+            (U_z(i_x,i_y,i_z)-Ub_z(i_x,i_y,i_z))*s_zx(i_x,i_y,i_z)*(U_x(i_x,i_y,i_z)-Ub_x(i_x,i_y,i_z)) ) )
+      ! The strain based decorrelation growth
 
       ip_x = i_x + 1
       ip_y = i_y + 1
@@ -212,7 +191,6 @@ MODULE system_decorrelator
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! IMPOSING PERIODICITY DURING FINITE DIFFERENCE FOR LAPLACIAN
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
       PBC_PX: IF ( ip_x > N - 1 ) THEN
         ip_x  = ip_x - N
       END IF PBC_PX
@@ -232,91 +210,128 @@ MODULE system_decorrelator
         im_z  = im_z + N
       END IF PBC_MZ
 
-      df_x    = u2_x( i_x, i_y, i_z ) - u_x( i_x, i_y, i_z )
-      df_y    = u2_y( i_x, i_y, i_z ) - u_y( i_x, i_y, i_z )
-      df_z    = u2_z( i_x, i_y, i_z ) - u_z( i_x, i_y, i_z )
+      df_x    = Ub_x( i_x, i_y, i_z ) - U_x( i_x, i_y, i_z )
+      df_y    = Ub_y( i_x, i_y, i_z ) - U_y( i_x, i_y, i_z )
+      df_z    = Ub_z( i_x, i_y, i_z ) - U_z( i_x, i_y, i_z )
 
-      df_x_px = u2_x( ip_x, i_y, i_z ) - u_x( ip_x, i_y, i_z )
-      df_y_px = u2_y( ip_x, i_y, i_z ) - u_y( ip_x, i_y, i_z )
-      df_z_px = u2_z( ip_x, i_y, i_z ) - u_z( ip_x, i_y, i_z )
-      df_x_py = u2_x( i_x, ip_y, i_z ) - u_x( i_x, ip_y, i_z )
-      df_y_py = u2_y( i_x, ip_y, i_z ) - u_y( i_x, ip_y, i_z )
-      df_z_py = u2_z( i_x, ip_y, i_z ) - u_z( i_x, ip_y, i_z )
-      df_x_pz = u2_x( i_x, i_y, ip_z ) - u_x( i_x, i_y, ip_z )
-      df_y_pz = u2_y( i_x, i_y, ip_z ) - u_y( i_x, i_y, ip_z )
-      df_z_pz = u2_z( i_x, i_y, ip_z ) - u_z( i_x, i_y, ip_z )
+      df_x_px = Ub_x( ip_x, i_y, i_z ) - U_x( ip_x, i_y, i_z )
+      df_y_px = Ub_y( ip_x, i_y, i_z ) - U_y( ip_x, i_y, i_z )
+      df_z_px = Ub_z( ip_x, i_y, i_z ) - U_z( ip_x, i_y, i_z )
+      df_x_py = Ub_x( i_x, ip_y, i_z ) - U_x( i_x, ip_y, i_z )
+      df_y_py = Ub_y( i_x, ip_y, i_z ) - U_y( i_x, ip_y, i_z )
+      df_z_py = Ub_z( i_x, ip_y, i_z ) - U_z( i_x, ip_y, i_z )
+      df_x_pz = Ub_x( i_x, i_y, ip_z ) - U_x( i_x, i_y, ip_z )
+      df_y_pz = Ub_y( i_x, i_y, ip_z ) - U_y( i_x, i_y, ip_z )
+      df_z_pz = Ub_z( i_x, i_y, ip_z ) - U_z( i_x, i_y, ip_z )
 
-      df_x_mx = u2_x( im_x, i_y, i_z ) - u_x( im_x, i_y, i_z )
-      df_y_mx = u2_y( im_x, i_y, i_z ) - u_y( im_x, i_y, i_z )
-      df_z_mx = u2_z( im_x, i_y, i_z ) - u_z( im_x, i_y, i_z )
-      df_x_my = u2_x( i_x, im_y, i_z ) - u_x( i_x, im_y, i_z )
-      df_y_my = u2_y( i_x, im_y, i_z ) - u_y( i_x, im_y, i_z )
-      df_z_my = u2_z( i_x, im_y, i_z ) - u_z( i_x, im_y, i_z )
-      df_x_mz = u2_x( i_x, i_y, im_z ) - u_x( i_x, i_y, im_z )
-      df_y_mz = u2_y( i_x, i_y, im_z ) - u_y( i_x, i_y, im_z )
-      df_z_mz = u2_z( i_x, i_y, im_z ) - u_z( i_x, i_y, im_z )
+      df_x_mx = Ub_x( im_x, i_y, i_z ) - U_x( im_x, i_y, i_z )
+      df_y_mx = Ub_y( im_x, i_y, i_z ) - U_y( im_x, i_y, i_z )
+      df_z_mx = Ub_z( im_x, i_y, i_z ) - U_z( im_x, i_y, i_z )
+      df_x_my = Ub_x( i_x, im_y, i_z ) - U_x( i_x, im_y, i_z )
+      df_y_my = Ub_y( i_x, im_y, i_z ) - U_y( i_x, im_y, i_z )
+      df_z_my = Ub_z( i_x, im_y, i_z ) - U_z( i_x, im_y, i_z )
+      df_x_mz = Ub_x( i_x, i_y, im_z ) - U_x( i_x, i_y, im_z )
+      df_y_mz = Ub_y( i_x, i_y, im_z ) - U_y( i_x, i_y, im_z )
+      df_z_mz = Ub_z( i_x, i_y, im_z ) - U_z( i_x, i_y, im_z )
 
-      decor_eta_val = df_x * ( - 6.0D0 * df_x + df_x_px + df_x_py + df_x_pz + df_x_mx + df_x_my + df_x_mz ) + &
-                      df_y * ( - 6.0D0 * df_y + df_y_px + df_y_py + df_y_pz + df_y_mx + df_y_my + df_y_mz ) + &
-                      df_z * ( - 6.0D0 * df_z + df_z_px + df_z_py + df_z_pz + df_z_mx + df_z_my + df_z_mz )
+      viscous_growth = df_x*(-6.0D0*df_x+df_x_px+df_x_py+df_x_pz+df_x_mx+df_x_my+df_x_mz) + &
+                       df_y*(-6.0D0*df_y+df_y_px+df_y_py+df_y_pz+df_y_mx+df_y_my+df_y_mz) + &
+                       df_z*(-6.0D0*df_z+df_z_px+df_z_py+df_z_pz+df_z_mx+df_z_my+df_z_mz)
+      viscous_growth = viscosity * viscous_growth / ( dx * dx )
+      ! The viscous diffusion based decorrelation growth
 
-      lyp_eta_field( i_x, i_y, i_z ) = viscosity * decor_eta_val / ( dx * dx )
+      Lyp_fld( i_x, i_y, i_z ) = ( strain_growth + viscous_growth ) / Dec_fld( i_x, i_y, i_z )
+
+      dec_dot_str              = dec_dot_str + strain_growth
+      dec_dot_vis              = dec_dot_vis + viscous_growth
+      lyp_avg                  = lyp_avg + Lyp_fld( i_x, i_y, i_z )
+      lyp_std                  = lyp_std + ( Lyp_fld( i_x, i_y, i_z ) ** two )
+
+    ELSE
+
+      Lyp_fld( i_x, i_y, i_z ) = zero
+
+    END IF DIFF_FIELD_CHECK
 
     END DO
     END DO
     END DO
 
-    bin_count_2 = 0
+    dec         = dec         / N3
+    dec_dot_str = dec_dot_str / N3
+    dec_dot_vis = dec_dot_vis / N3
+    dec_dot     = dec_dot_str + dec_dot_vis
+    lyp_avg     = lyp_avg     / N3
+    lyp_std     = ( lyp_std   / N3 ) - lyp_avg ** two
 
-    LOOP_RX_908: DO i_x = 0 , N - 1
-    LOOP_RY_908: DO i_y = 0 , N - 1
-    LOOP_RZ_908: DO i_z = 0 , N - 1
-
-      DIFF_FIELD_CHECK_0: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
-
-        lam_eta_field( i_x, i_y, i_z ) = lyp_eta_field( i_x, i_y, i_z ) / diff_field( i_x, i_y, i_z )
-        ! The diffusive based timescales field
-
-      ELSE
-
-        lam_eta_field( i_x, i_y, i_z ) = zero
-        bin_count_2                    = bin_count_2 + 1
-
-      END IF DIFF_FIELD_CHECK_0
-
-    END DO LOOP_RZ_908
-    END DO LOOP_RY_908
-    END DO LOOP_RX_908
-
-    lyp_eta_field    = lyp_eta_field / decor
-    ! The diffusive lyapunov field normalized with the decorrelator
-
-    ! CALL write_section('lyp_eta',lyp_eta_field( 0, : , : ) )
-    ! REF <<< system_basicoutput >>>
   END
 
-  SUBROUTINE deallocate_decorrelator
+  SUBROUTINE compute_pdf_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
-  ! CALL this to deallocate decorrelator
+  ! CALL THIS SUBROUTINE TO:
+  ! Find the pdf of lyp-eta scales distribution
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4) ::bin,num_pts_pdf
+    DOUBLE PRECISION::lyp_dum,std_fac
 
-    IMPLICIT NONE
+    ! --------------------------------------------------------------------
+    ! Following values are for N=128 . Rescale accordingly for different N
+    ! --------------------------------------------------------------------
+    ! lyp_max    = +40.0D0 * ( N / 128 )
+    ! lyp_min    = -40.0D0 * ( N / 128 )
 
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  D E - A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEALLOCATE(diff_field)
-    ! DEALLOCATE(lyp_str_field)
-    ! DEALLOCATE(lam_str_field)
-    ! DEALLOCATE(lyp_eta_field)
-    ! DEALLOCATE(lam_eta_field)
-    ! DEALLOCATE(lyp_str_val, pdf_lyp_str)
-    ! DEALLOCATE(lyp_eta_val, pdf_lyp_eta)
-    ! DEALLOCATE(lam_str_val, pdf_lam_str)
-    ! DEALLOCATE(lam_eta_val, pdf_lam_eta)
-    ! DEALLOCATE(m_val,gen_decor)
+    std_fac      = 10.0D0
+    lyp_dum      = lyp_avg
+    lyp_std      = lyp_std / ( lyp_avg ** two )
+    lyp_avg      = one
+    lyp_min      = lyp_avg - std_fac * lyp_std
+    lyp_max      = lyp_avg + std_fac * lyp_std
+    lyp_bin_size = ( lyp_max - lyp_min ) / num_bin_lyp
+
+    DO bin = 1, num_bin_lyp
+      Lyp_val( bin ) = lyp_min + ( DBLE( bin ) - hf ) * lyp_bin_size
+    END DO
+
+    lyp_pdf     = zero
+    num_pts_pdf = 0
+
+    LOOP_RX_902: DO i_x = 0 , N - 1
+    LOOP_RY_902: DO i_y = 0 , N - 1
+    LOOP_RZ_902: DO i_z = 0 , N - 1
+
+      Lyp_fld( i_x, i_y, i_z ) = Lyp_fld( i_x, i_y, i_z ) / lyp_dum
+      bin                      = CEILING( ( Lyp_fld( i_x, i_y, i_z ) - lyp_min ) / lyp_bin_size )
+
+      BIN_CHECK_904: IF( (bin .GT. 1 ) .AND. (bin .LT. num_bin_lyp ) ) THEN
+        Lyp_pdf( bin )         = Lyp_pdf( bin ) + one
+        num_pts_pdf            = num_pts_pdf + 1
+      ELSEIF (bin .LE. 1 ) THEN
+        Lyp_pdf( 1 )           = Lyp_pdf( 1 ) + one
+      ELSEIF (bin .GE. num_bin_lyp ) THEN
+        Lyp_pdf( num_bin_lyp ) = Lyp_pdf( num_bin_lyp ) + one
+      END IF BIN_CHECK_904
+
+    END DO LOOP_RZ_902
+    END DO LOOP_RY_902
+    END DO LOOP_RX_902
+
+    Lyp_pdf   = Lyp_pdf / N3
+
+    IF  ( DBLE(num_pts_pdf) / N3 .LT. 0.95D0 ) THEN
+      PRINT*," More than 5 percent of values are falling out of the lyapunov histogram bins"
+    END IF
+
+    CALL write_lyp_pdf
+    ! Normalizing the PDF
+
+    CALL compute_pdf_dissipation
+    ! REF-> <<< system_advfunctions >>>
 
   END
 
@@ -333,19 +348,21 @@ MODULE system_decorrelator
     !   D E C O R    V S    T I M E
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF ( t_step .EQ. 0 ) THEN
-      file_name = TRIM( ADJUSTL( file_address ) ) // 'decor_growth.dat'
+      fil_name = TRIM( ADJUSTL( fil_adrs ) ) // 'decor_growth.dat'
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4002, file = file_name )
+      OPEN(unit = 4002, file = fil_name )
     END IF
 
-    ! lyp_str_avg = SUM(lyp_str_field) / N3
-    ! lyp_eta_avg = SUM(lyp_eta_field) / N3
-
-    WRITE(4002,f_d8p4,ADVANCE   ='no') time_now
-    WRITE(4002,f_d32p17,ADVANCE ='no') decor
+    WRITE(4002,f_d8p4,ADVANCE   ='no') t_now
+    WRITE(4002,f_d32p17,ADVANCE ='no') dec
     WRITE(4002,f_d32p17,ADVANCE ='no') lyp_decor
-    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_str_avg
-    WRITE(4002,f_d32p17,ADVANCE ='yes')lyp_eta_avg
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_dec_cal
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_dec_str
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_dec_vis
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_avg
+    WRITE(4002,f_d32p17,ADVANCE ='no') lyp_std
+    WRITE(4002,f_d32p17,ADVANCE ='no') dis_avg
+    WRITE(4002,f_d32p17,ADVANCE ='yes')dis_std
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4002)
@@ -354,7 +371,7 @@ MODULE system_decorrelator
 
   END
 
-  SUBROUTINE write_generalized_decorrelator_growth
+  SUBROUTINE write_generalized_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -366,220 +383,27 @@ MODULE system_decorrelator
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  G E N .   D E C O R    V S    T I M E
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF ( t_step .EQ. 0 ) THEN
+    WRITE (fil_time,f_d8p4) t_now
+    ! Writes 't_now' as a CHARACTER
 
-      file_name = TRIM( ADJUSTL( file_address ) ) // 'gen_decor_moments.dat'
-      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4018, file = file_name )
-
-      DO m_ind = 1,m_size
-
-        WRITE(4018,f_d8p4,ADVANCE ='no') DBLE( m_ind )
-        WRITE(4018,f_d8p4,ADVANCE ='yes') m_val( m_ind )
-      ! list of moment exponents
-
-      END DO
-
-      CLOSE(4018)
-
-      file_name = TRIM( ADJUSTL( file_address ) ) // 'gen_decor_growth.dat'
-      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4028, file = file_name )
-
-    END IF
-
-    WRITE(4028,f_d8p4,ADVANCE   ='no') time_now
-    DO m_ind = 1,m_size-1
-      WRITE(4028,f_d32p17,ADVANCE   ='no') DLOG( gen_decor( m_ind ) )
-    END DO
-    WRITE(4028,f_d32p17,ADVANCE   ='yes') DLOG( gen_decor( m_size ) )
-
-    IF ( t_step .EQ. t_step_total ) THEN
-      CLOSE(4028)
-    END IF
+    fil_name = TRIM( ADJUSTL( fil_adrs ) ) // TRIM( ADJUSTL( dir_pdf ) ) // &
+               'lyp_fun_t_' // TRIM( ADJUSTL ( fil_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    OPEN(unit = 4028, file = fil_name )
+
+    DO m_ind = 1,m_siz
+      WRITE(4028,f_d8p4,  ADVANCE   ='no')  Mom_val( m_ind )
+      WRITE(4028,f_d32p17,ADVANCE   ='no')  Lyp_fun( m_ind )
+      WRITE(4028,f_d32p17,ADVANCE   ='yes') Lyp_mom( m_ind )
+    END DO
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    CLOSE(4028)
 
   END
 
-  SUBROUTINE write_lyapunov_field
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL THIS SUBROUTINE TO:
-  ! write the 3D data of lyapunov field
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
-
-    WRITE (file_time,f_d8p4) time_now
-    ! Writes 'time_now' as a CHARACTER
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'lyapunov_t_' &
-             // TRIM( ADJUSTL ( file_time ) ) // '.dat'
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  Lyapunov Scale
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4008, file = file_name )
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
-
-        WRITE(4008,f_d32p17,ADVANCE ='no')  lyp_str_field( i_x, i_y, i_z )
-        WRITE(4008,f_d32p17,ADVANCE ='yes') lyp_eta_field( i_x, i_y, i_z )
-
-    END DO
-    END DO
-    END DO
-
-    CLOSE(4008)
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  END
-
-  SUBROUTINE write_timescales_field
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL THIS SUBROUTINE TO:
-  ! write the 3D data of timescales field
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
-
-    WRITE (file_time,f_d8p4) time_now
-    ! Writes 'time_now' as a CHARACTER
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    file_name = TRIM( ADJUSTL( file_address ) ) // 'timescales_t_' &
-             // TRIM( ADJUSTL ( file_time ) ) // '.dat'
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  Lyapunov Scale
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4003, file = file_name )
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
-
-        WRITE(4003,f_d32p17,ADVANCE ='no')  lam_str_field( i_x, i_y, i_z )
-        WRITE(4003,f_d32p17,ADVANCE ='yes') lam_eta_field( i_x, i_y, i_z )
-
-    END DO
-    END DO
-    END DO
-
-    CLOSE(4003)
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  END
-
-  SUBROUTINE compute_pdf_lyapunov_and_timescales
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL THIS SUBROUTINE TO:
-  ! Find the pdf of lyp-eta scales distribution
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  IMPLICIT NONE
-    ! _________________________
-    ! LOCAL VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    INTEGER(KIND=4) ::l_b
-    ! INTEGER(KIND=4) ::bin_count
-
-    ! --------------------------------------------------------------------
-    ! Following values are for N=128 . Rescale accordingly for different N
-    ! --------------------------------------------------------------------
-    lyp_str_max     = +40.0D0 * ( N / 128 )
-    lyp_str_min     = -40.0D0 * ( N / 128 )
-    lam_str_max     = +40.0D0 * ( N / 128 )
-    lam_str_min     = -40.0D0 * ( N / 128 )
-    lyp_eta_max     = +75.0D0 * ( N / 128 )
-    lyp_eta_min     = -75.0D0 * ( N / 128 )
-    lam_eta_max     = +75.0D0 * ( N / 128 )
-    lam_eta_min     = -75.0D0 * ( N / 128 )
-
-    lyp_str_binsize = ( lyp_str_max - lyp_str_min ) / lyp_bins
-    lam_str_binsize = ( lam_str_max - lam_str_min ) / lyp_bins
-    lyp_eta_binsize = ( lyp_eta_max - lyp_eta_min ) / lyp_bins
-    lam_eta_binsize = ( lam_eta_max - lam_eta_min ) / lyp_bins
-
-    DO l_b = 1, lyp_bins
-
-      lyp_str_val( l_b ) = lyp_str_min + DBLE( l_b ) * lyp_str_binsize
-      lyp_eta_val( l_b ) = lyp_eta_min + DBLE( l_b ) * lyp_eta_binsize
-      lam_str_val( l_b ) = lam_str_min + DBLE( l_b ) * lyp_str_binsize
-      lam_eta_val( l_b ) = lam_eta_min + DBLE( l_b ) * lyp_eta_binsize
-
-    END DO
-
-    pdf_lyp_str     = zero
-    pdf_lyp_eta     = zero
-    pdf_lam_str     = zero
-    pdf_lam_eta     = zero
-
-    lyp_str_bin_count   = 0
-    lyp_eta_bin_count   = 0
-    lam_str_bin_count   = 0
-    lam_eta_bin_count   = 0
-
-    LOOP_RX_902: DO i_x = 0 , N - 1
-    LOOP_RY_902: DO i_y = 0 , N - 1
-    LOOP_RZ_902: DO i_z = 0 , N - 1
-
-      DIFF_FIELD_CHECK_3: IF( diff_field( i_x, i_y, i_z ) .GT. tol ) THEN
-
-        l_b = CEILING( ( lyp_str_field( i_x, i_y, i_z ) - lyp_str_min ) / lyp_str_binsize )
-        BIN_CHECK_904: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
-
-          pdf_lyp_str( l_b ) = pdf_lyp_str( l_b ) + one
-          lyp_str_bin_count  = lyp_str_bin_count + 1
-
-        END IF BIN_CHECK_904
-
-        l_b = CEILING( ( lyp_eta_field( i_x, i_y, i_z ) - lyp_eta_min ) / lyp_eta_binsize )
-        BIN_CHECK_905: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
-
-          pdf_lyp_eta( l_b ) = pdf_lyp_eta( l_b ) + one
-          lyp_eta_bin_count  = lyp_eta_bin_count + 1
-
-        END IF BIN_CHECK_905
-
-        l_b = CEILING( ( lam_str_field( i_x, i_y, i_z ) - lam_str_min ) / lam_str_binsize )
-        BIN_CHECK_906: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
-
-          pdf_lam_str( l_b ) = pdf_lam_str( l_b ) + one
-          lam_str_bin_count  = lam_str_bin_count + 1
-
-        END IF BIN_CHECK_906
-
-        l_b = CEILING( ( lam_eta_field( i_x, i_y, i_z ) - lam_eta_min ) / lam_eta_binsize )
-        BIN_CHECK_907: IF( (l_b .GE. 1 ) .AND. (l_b .LE. lyp_bins ) ) THEN
-
-          pdf_lam_eta( l_b ) = pdf_lam_eta( l_b ) + one
-          lam_eta_bin_count  = lam_eta_bin_count + 1
-
-        END IF BIN_CHECK_907
-
-      END IF DIFF_FIELD_CHECK_3
-
-    END DO LOOP_RZ_902
-    END DO LOOP_RY_902
-    END DO LOOP_RX_902
-
-    pdf_lyp_str     = pdf_lyp_str / DBLE( lyp_str_bin_count )
-    pdf_lyp_eta     = pdf_lyp_eta / DBLE( lyp_eta_bin_count )
-    pdf_lam_str     = pdf_lam_str / DBLE( lam_str_bin_count )
-    pdf_lam_eta     = pdf_lam_eta / DBLE( lam_eta_bin_count )
-
-    CALL write_pdf
-    ! Normalizing the PDF
-
-  END
-
-  SUBROUTINE write_pdf
+  SUBROUTINE write_lyp_pdf
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This writes the pdf of lyapunov and timescales
@@ -590,29 +414,23 @@ MODULE system_decorrelator
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    INTEGER(KIND=4)::l_b
+    INTEGER(KIND=4)::bin
 
-    WRITE (file_time,f_d8p4) time_now
-    ! Writes 'time_now' as a CHARACTER
+    WRITE (fil_time,f_d8p4) t_now
+    ! Writes 't_now' as a CHARACTER
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'pdf_' &
-              //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    fil_name = TRIM( ADJUSTL( fil_adrs ) ) // TRIM( ADJUSTL( dir_pdf ) ) // &
+                  'lyp_pdf_t_' // TRIM( ADJUSTL ( fil_time ) ) // '.dat'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    OPEN( unit = 799, file = file_name )
+    OPEN( unit = 799, file = fil_name )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DO l_b = 1, lyp_bins
+    DO bin = 1, num_bin_lyp
 
-      WRITE(799,f_d12p6,ADVANCE  ='NO') lyp_str_val( l_b )
-      WRITE(799,f_d32p17,ADVANCE ='NO') pdf_lyp_str( l_b )
-      WRITE(799,f_d12p6,ADVANCE  ='NO') lyp_eta_val( l_b )
-      WRITE(799,f_d32p17,ADVANCE ='NO') pdf_lyp_eta( l_b )
-      WRITE(799,f_d12p6,ADVANCE  ='NO') lam_str_val( l_b )
-      WRITE(799,f_d32p17,ADVANCE ='NO') pdf_lam_str( l_b )
-      WRITE(799,f_d12p6,ADVANCE  ='NO') lam_eta_val( l_b )
-      WRITE(799,f_d32p17,ADVANCE ='YES')pdf_lam_eta( l_b )
+      WRITE(799,f_d12p6,ADVANCE  ='NO')  Lyp_val( bin )
+      WRITE(799,f_d32p17,ADVANCE ='YES') Lyp_pdf( bin )
 
     END DO
 
@@ -621,157 +439,24 @@ MODULE system_decorrelator
 
   END
 
-  ! SUBROUTINE compute_cross_correlation
-  ! ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ! ------------
-  ! ! CALL THIS SUBROUTINE TO:
-  ! ! To find the cross correlation coefficient between dissipation field and strain lyapunov
-  ! ! -------------
-  ! ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !   IMPLICIT NONE
-  !
-  !   ccrel_ds_lyp_str     = SUM( ds_rate * lyp_str ) / N3
-  !   ccrel_ds_lyp_str     = ( ccrel_ds_lyp_str - ds_avg * lyp_str_avg ) / ( ds_std * lyp_str_std )
-  !
-  !   ccrel_ds_lyp_eta     = SUM( ds_rate * lyp_eta ) / N3
-  !   ccrel_ds_lyp_eta     = ( ccrel_ds_lyp_eta - ds_avg * lyp_eta_avg ) / ( ds_std * lyp_eta_std )
-  !
-  !   ccrel_str_eta        = SUM( lyp_str * lyp_eta ) / N3
-  !   ccrel_str_eta        = ( ccrel_str_eta - lyp_str_avg * lyp_eta_avg ) / ( lyp_eta_std * lyp_str_std )
-  !
-  !   ccrel_lyp_str_vx_alp = SUM( vx_alp * lyp_str ) / N3
-  !   ccrel_lyp_str_vx_alp = ( ccrel_lyp_str_vx_alp - lyp_str_avg * vx_alp_avg ) / ( lyp_str_std * vx_alp_std )
-  !
-  !   ccrel_ds_vx_alp      = SUM( ds_rate * vx_alp ) / N3
-  !   ccrel_ds_vx_alp      = ( ccrel_ds_vx_alp - ds_avg * vx_alp_avg ) / ( ds_std * vx_alp_std )
-  !
-  !   ! CALL write_extreme_events
-  !
-  !   CALL write_cross_correlation
-  !
-  ! END
-
-  ! SUBROUTINE write_extreme_events
-  ! ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ! ------------
-  ! ! CALL THIS SUBROUTINE TO:
-  ! ! To find the extreme dissipation points and the lyapunov timescales there
-  ! ! -------------
-  ! ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !   IMPLICIT NONE
-  !   ! _________________________
-  !   ! LOCAL VARIABLES
-  !   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  !   INTEGER(KIND=4)::event_count
-  !   DOUBLE PRECISION::ds_ratio
-  !   DOUBLE PRECISION::extremity_threshold
-  !
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !   !  E X T R E M E    E V E N T    R E C O R D
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !   extremity_threshold = 6.0D0
-  !   event_count         = 0
-  !   WRITE (file_time,f_d8p4) time_now
-  !   ! Writes 'time_now' as a CHARACTER
-  !
-  !   file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_pdf ) ) // 'extreme_events' &
-  !             //TRIM( ADJUSTL( N_char ) ) // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !
-  !   OPEN( unit = 866, file = file_name )
-  !
-  !   LOOP_RX_908: DO i_x = 0 , N - 1
-  !   LOOP_RY_908: DO i_y = 0 , N - 1
-  !   LOOP_RZ_908: DO i_z = 0 , N - 1
-  !
-  !     ds_ratio            = ( ds_rate( i_x, i_y, i_z ) - ds_avg ) / ds_std
-  !
-  !     EXTREMITY_CHECK: IF( DABS( ds_ratio ) .GT. extremity_threshold ) THEN
-  !
-  !       event_count = event_count + 1
-  !       WRITE(866,f_d32p17,ADVANCE ='NO') ds_rate( i_x, i_y, i_z ) / ds_std
-  !       WRITE(866,f_d32p17,ADVANCE ='NO') lyp_str( i_x, i_y, i_z ) / lyp_str_bar
-  !       WRITE(866,f_d32p17,ADVANCE ='NO') lyp_eta( i_x, i_y, i_z ) / lyp_eta_bar
-  !       WRITE(866,f_d32p17,ADVANCE ='YES') vx_alp( i_x, i_y, i_z ) / vx_alp_avg
-  !
-  !     END IF EXTREMITY_CHECK
-  !
-  !   END DO LOOP_RZ_908
-  !   END DO LOOP_RY_908
-  !   END DO LOOP_RX_908
-  !
-  !   CLOSE(866)
-  !
-  ! END
-
-  ! SUBROUTINE write_cross_correlation
-  ! ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ! ------------
-  ! ! CALL THIS SUBROUTINE TO:
-  ! ! write the cross correlation data in time
-  ! ! -------------
-  ! ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !   IMPLICIT NONE
-  !
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !   !   C R O S S   C O R R E L A T I O N    V S    T I M E
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !   IF ( t_step .EQ. 0 ) THEN
-  !     file_name = TRIM( ADJUSTL( file_address ) ) // 'cross_correlation.dat'
-  !     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !     OPEN(unit = 4008, file = file_name )
-  !     ! File where energy vs time will be written. With additional data
-  !   END IF
-  !
-  !   IF ( t_step .GT. 0 ) THEN
-  !     WRITE(4008,f_d8p4,ADVANCE   ='no') time_now
-  !     WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_str
-  !     WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_lyp_eta
-  !     WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_lyp_str_vx_alp
-  !     WRITE(4008,f_d32p17,ADVANCE ='no') ccrel_ds_vx_alp
-  !     WRITE(4008,f_d32p17,ADVANCE ='yes') ccrel_str_eta
-  !
-  !   END IF
-  !
-  !   IF ( t_step .EQ. t_step_total ) THEN
-  !     CLOSE(4008)
-  !   END IF
-  !   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  !
-  ! END
-
-  SUBROUTINE write_decorrelator_statistics
+  SUBROUTINE deallocate_decorrelator
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
-  ! CALL THIS SUBROUTINE TO:
-  ! write the statistics of the decorrelators
+  ! CALL this to deallocate decorrelator
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  IMPLICIT NONE
 
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  S T A T I S T I C S
+    IMPLICIT NONE
+
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF ( t_step .EQ. 0 ) THEN
-      file_name = TRIM( ADJUSTL( file_address ) ) // 'decor_stats.dat'
-      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      OPEN(unit = 4808, file = file_name )
-      ! File where energy vs time will be written. With additional data
-    END IF
+    !  D E - A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE(Dec_fld,Lyp_fld)
+    DEALLOCATE(Lyp_val, Lyp_pdf)
+    DEALLOCATE(Mom_val,Lyp_fun,Lyp_mom)
 
-    lam_str_avg = SUM(lam_str_field) / N3
-    lam_eta_avg = SUM(lam_eta_field) / N3
-
-    WRITE(4808,f_d8p4,ADVANCE   ='no') time_now
-    WRITE(4808,f_d32p17,ADVANCE ='no') lam_str_avg
-    WRITE(4808,f_d32p17,ADVANCE ='no') lam_eta_avg
-    WRITE(4808,f_d32p17,ADVANCE ='no') ds_avg
-    WRITE(4808,f_d32p17,ADVANCE ='yes')vx_alp_avg
-
-    IF ( t_step .EQ. t_step_total ) THEN
-      CLOSE(4808)
-    END IF
-    !  +++++++++
+    CALL deallocate_strain_tensor
+    ! REF-> <<< system_advdeclaration >>>
 
   END
 

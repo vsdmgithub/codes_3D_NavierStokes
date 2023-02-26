@@ -38,13 +38,13 @@ MODULE system_pvdoutput
   ! _________________________
   ! OUTPUT VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
+  TYPE(VTR_fil_handle)::fil_pvd
+  TYPE(VTK_fil_handle)::fil_pvd
   ! CHARACTER(LEN=40)::pvd_file
   INTEGER(KIND=4)::pvd_N_x,pvd_N_y,pvd_N_z
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::vec_x,vec_y,vec_z,scalr
-  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::pvd_ax_x,pvd_ax_y,pvd_ax_z
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::Vec_x,Vec_y,Vec_z,Scal
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::Pvd_x,Pvd_y,Pvd_z
 
-  ! TYPE(VTK_file_handle)::fd
-  TYPE(VTR_file_handle)::fd
   ! creating dataypes to store paraview files for 3d viewing
 
   CONTAINS
@@ -65,29 +65,29 @@ MODULE system_pvdoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE( pvd_ax_x( 0 : pvd_N_x - 1 ) )
-    ALLOCATE( pvd_ax_y( 0 : pvd_N_y - 1 ) )
-    ALLOCATE( pvd_ax_z( 0 : pvd_N_z - 1 ) )
-    ALLOCATE( vec_x( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
-    ALLOCATE( vec_y( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
-    ALLOCATE( vec_z( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
-    ALLOCATE( scalr( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
+    ALLOCATE( Pvd_x( 0 : pvd_N_x - 1 ) )
+    ALLOCATE( Pvd_y( 0 : pvd_N_y - 1 ) )
+    ALLOCATE( Pvd_z( 0 : pvd_N_z - 1 ) )
+    ALLOCATE( Vec_x( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
+    ALLOCATE( Vec_y( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
+    ALLOCATE( Vec_z( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
+    ALLOCATE(  Scal( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
 
     DO i_x = 0, pvd_N_x - 1
 
-      pvd_ax_x( i_x ) = i_x * dx
+      Pvd_x( i_x ) = i_x * l_grd
 
     END DO
 
     DO i_y = 0, pvd_N_y - 1
 
-      pvd_ax_y( i_y ) = i_y * dx
+      Pvd_y( i_y ) = i_y * l_grd
 
     END DO
 
     DO i_z = 0, pvd_N_z - 1
 
-      pvd_ax_z( i_z ) = i_z * dx
+      Pvd_z( i_z ) = i_z * l_grd
 
     END DO
 
@@ -103,23 +103,20 @@ MODULE system_pvdoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    ! WRITE (file_time,f_d8p4) time_now
-    ! Writes 'time_now' as a CHARACTER
-
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
-                // 'V_t'
+    fil_name = TRIM( ADJUSTL( fil_adrs ) ) // TRIM( ADJUSTL( dir_sec ) ) &
+                // 'Vel'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   VORTICITY - PVD FORMAT
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+    CALL  VTR_open_file(PREFIX=fil_name,FD=fil_pvd)
 
-    CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+    CALL  VTR_write_mesh(FD=fil_pvd,X=Axis,Y=Axis,Z=Axis)
 
-    CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=u_x,VY=u_y,VZ=u_z )
+    CALL  VTR_write_var(FD=fil_pvd,NAME="Velocity",VX=U_x,VY=U_y,VZ=U_z )
 
-    CALL  VTR_close_file(FD=fd)
+    CALL  VTR_close_file(FD=fil_pvd)
 
-    ! CALL  VTR_collect_file( FD = fd )
+    ! CALL  VTR_collect_file( FD = fil_pvd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
@@ -133,23 +130,23 @@ MODULE system_pvdoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    ! WRITE (file_time,f_d8p4) time_now
+    ! WRITE (fil_time,f_d8p4) time_now
     ! Writes 'time_now' as a CHARACTER
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
-                // 'VX_t'
+    fil_name = TRIM( ADJUSTL( fil_adrs ) ) // TRIM( ADJUSTL( dir_sec ) ) &
+                // 'Vor'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   VORTICITY - PVD FORMAT
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+    CALL  VTR_open_file(PREFIX=fil_name,FD=fil_pvd)
 
-    CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+    CALL  VTR_write_mesh(FD=fil_pvd,X=Axis,Y=Axis,Z=Axis)
 
-    CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
+    CALL  VTR_write_var(FD=fil_pvd,NAME="Vorticity",VX=W_x,VY=W_y,VZ=W_z )
 
-    CALL  VTR_close_file(FD=fd)
+    CALL  VTR_close_file(FD=fil_pvd)
 
-    ! CALL  VTR_collect_file( FD = fd )
+    ! CALL  VTR_collect_file( FD = fil_pvd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
@@ -163,26 +160,26 @@ MODULE system_pvdoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    vec_x = w_ux(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_y = w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    vec_z = w_uz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    Vec_x = W_x(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    Vec_y = W_y(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    Vec_z = W_z(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! COPYING THE SUBSET DATA
 
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
-                // 'VX_SUB_t'
+    fil_name = TRIM( ADJUSTL( fil_adrs ) ) // TRIM( ADJUSTL( dir_sec ) ) &
+                // 'Vor_sub'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   VORTICITY - PVD FORMAT (SUBSET)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+    CALL  VTR_open_file(PREFIX=fil_name,FD=fil_pvd)
 
-    CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y,Z=pvd_ax_z)
+    CALL  VTR_write_mesh(FD=fil_pvd,X=Pvd_x,Y=Pvd_y,Z=Pvd_z)
 
-    CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    CALL  VTR_write_var(FD=fil_pvd,NAME="Vorticity",VX=Vec_x,VY=Vec_y,VZ=Vec_z )
 
-    CALL  VTR_close_file(FD=fd)
+    CALL  VTR_close_file(FD=fil_pvd)
 
-    ! CALL  VTR_collect_file( FD = fd )
+    ! CALL  VTR_collect_file( FD = fil_pvd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
@@ -198,9 +195,9 @@ MODULE system_pvdoutput
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE(pvd_ax_x,pvd_ax_y,pvd_ax_z)
-		DEALLOCATE(vec_x,vec_y,vec_z)
-		DEALLOCATE(scalr)
+		DEALLOCATE(Pvd_x,Pvd_y,Pvd_z)
+		DEALLOCATE(Vec_x,Vec_y,Vec_z)
+		DEALLOCATE(Scal)
 
 	END
 

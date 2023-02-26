@@ -37,7 +37,7 @@ MODULE system_auxilaries
 
   CONTAINS
 
-	SUBROUTINE find_CFL_timestep(dt_max1,dt_max2,delta_t)
+	SUBROUTINE find_timestep(dt_max1,dt_max2,delta_t)
 	! CALL this to find a nice rounded of time step based on limits
 		IMPLICIT  NONE
 		DOUBLE PRECISION,INTENT(IN)::dt_max1,dt_max2
@@ -63,12 +63,10 @@ MODULE system_auxilaries
 		INTEGER(KIND=4),INTENT(IN)::k_int
 		DOUBLE PRECISION::adjust_factor
 
-		adjust_factor = 6.0D0
+		adjust_factor = 2.0D0
 		! Refined adjusting factor
 
-		ds = twothird * en / C_kolmo
-		ds = ds ** 1.5D0
-		ds = ds / DBLE(k_int)
+		ds = ( en ** 1.5D0 ) * k_int / ( two_pi )
 		ds = adjust_factor * ds
 		! Estimated dissipation rate
 
@@ -240,7 +238,8 @@ MODULE system_auxilaries
 		WRITE(sec_char,'(I2.2)')		 values(7)
 		! Self-explained
 
-		sim_char    =  'run_dt_'//TRIM(ADJUSTL(date_char))//TRIM(ADJUSTL(month_char))//&
+		! sim_char    =  'run_dt_'//TRIM(ADJUSTL(date_char))//TRIM(ADJUSTL(month_char))//&
+		sim_char    =  TRIM(ADJUSTL(date_char))//TRIM(ADJUSTL(month_char))//&
 		TRIM(ADJUSTL(year_char))//'_t_'//TRIM(ADJUSTL(hour_char))//&
 		TRIM(ADJUSTL(min_char))//TRIM(ADJUSTL(sec_char))
 

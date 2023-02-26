@@ -12,7 +12,7 @@
 
 ! ##################
 ! MODULE: system_advvariables
-! LAST MODIFIED: 21 JUNE 2021
+! LAST MODIFIED: 20 FEBRAURY 2023
 ! ##################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -36,32 +36,6 @@ MODULE system_advdeclaration
 
   CONTAINS
 
-  SUBROUTINE allocate_velocity_gradient
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to allocate velocity gradient
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE(duxx   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duyy   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duzz   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duxy   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duyx   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duyz   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duzy   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duxz   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(duzx   (0:N-1,0:N-1,0:N-1))
-    ALLOCATE(q_invar(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(r_invar(0:N-1,0:N-1,0:N-1))
-
-  END
-
   SUBROUTINE allocate_strain_tensor
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -76,43 +50,11 @@ MODULE system_advdeclaration
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ALLOCATE(s_xx(0:N-1,0:N-1,0:N-1),s_yy(0:N-1,0:N-1,0:N-1),s_zz(0:N-1,0:N-1,0:N-1))
     ALLOCATE(s_zx(0:N-1,0:N-1,0:N-1),s_xy(0:N-1,0:N-1,0:N-1),s_yz(0:N-1,0:N-1,0:N-1))
-    ! ALLOCATE(vx_alp(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(Dis_fld(0:N-1,0:N-1,0:N-1))
 
-  END
-
-  SUBROUTINE allocate_dissipation
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to allocate dissipation field
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE(ds_rate(0:N-1,0:N-1,0:N-1))
-
-  END
-
-  SUBROUTINE deallocate_velocity_gradient
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to deallocate velocity gradient
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  D E - A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEALLOCATE(duxx,duyy,duzz)
-    DEALLOCATE(duxy,duyx)
-    DEALLOCATE(duzy,duyz)
-    DEALLOCATE(duxz,duzx)
-    DEALLOCATE(q_invar,r_invar)
+    num_bin_dis    = CEILING( ( DBLE(N) / 128.0D0 ) * 100.0D0 )
+    ALLOCATE( Dis_val( num_bin_dis ) )
+    ALLOCATE( Dis_pdf( num_bin_dis ) )
 
   END
 
@@ -124,29 +66,14 @@ MODULE system_advdeclaration
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
-
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D E - A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE(s_xx,s_yy,s_zz)
     DEALLOCATE(s_xy,s_yz,s_zx)
-    ! DEALLOCATE(vx_alp)
-
-  END
-
-  SUBROUTINE deallocate_dissipation
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to deallocate dissipation field
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  D E - A  L  L  O  C  A  T  I  O  N
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEALLOCATE(ds_rate)
+    DEALLOCATE(Dis_fld)
+    DEALLOCATE(Dis_val)
+    DEALLOCATE(Dis_pdf)
 
   END
 

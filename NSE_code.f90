@@ -11,7 +11,7 @@
 ! --------------------------------------------------------------
 ! ##################
 ! PROGRAM THAT SOLVES 3D INCOMPRESSIBLE NAVIER STOKES EQUATION
-! LAST MODIFIED: 22 JULY 2021
+! LAST MODIFIED: 20 FEBRAURY 2023
 ! ##################
 
 ! ##################
@@ -26,22 +26,18 @@
 ! system_initialcondition
 ! system_basicvariables
 ! system_basicdeclaration
+! system_advdeclaration
 ! system_advvariables
-! system_constants
 ! system_basicoutput
 ! system_advoutput
-! system_auxilaries
-! system_fftw
-! system_pvd_output
-! system_timer
 ! -------------------
 ! ##################
 
 PROGRAM NSE
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
-! All the work is done in the modules. Calling a few would finish
-! the code.
+! All the work is done in the modules.
+! Calling the correct modules would finish the simulation
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -99,11 +95,11 @@ USE system_timer
       ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
 			! REF-> <<< system_main >>>
 
-			! CALL prepare_perturbation
+			CALL prepare_perturbation
 			! Makes a copy and pertubs by one time step evolution with and without forcing for them.
 			! REF-> <<< system_main >>>
 
-      ! CALL time_evolution_chaos
+      CALL time_evolution_chaos
       ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
 			! REF-> <<< system_main >>>
 

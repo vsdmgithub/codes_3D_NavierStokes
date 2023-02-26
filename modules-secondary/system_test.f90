@@ -12,7 +12,7 @@
 
 ! #########################
 ! MODULE: system_test
-! LAST MODIFIED: 3 JUNE 2021
+! LAST MODIFIED: 20 FEBRAURY 2023
 ! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -64,10 +64,10 @@ MODULE system_test
 
     CALL CPU_TIME( time_start )
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r( V_x, V_y, V_z, N, Nh, U_x, U_y, U_z )
     ! FFT spectral to real velocity
 
-    CALL fft_r2c( u_x, u_y, u_z, N, Nh, v_x, v_y, v_z )
+    CALL fft_r2c( U_x, U_y, U_z, N, Nh, V_x, V_y, V_z )
     ! i-FFT real to spectral velocity
 
     CALL CPU_TIME( time_end )
@@ -110,7 +110,7 @@ MODULE system_test
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF ( solver_alg .EQ. 'rk') THEN
+    IF ( sol_algm .EQ. 'rk') THEN
       CALL solver_RK4_algorithm
     ELSE
       CALL solver_AB4_algorithm
@@ -137,13 +137,13 @@ MODULE system_test
 
     tol_evolution_time = 0.05
 
-    time_estimate      = CEILING( ( time_end - time_start ) * t_step_total * ( one + tol_evolution_time ) / 3600.0D0 )
+    time_estimate      = CEILING( ( time_end - time_start ) * t_step_tot * ( one + tol_evolution_time ) / 3600.0D0 )
 
     WRITE(*,'(A60)')			TRIM( ADJUSTL( '-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-' ) )
     WRITE(*,*)
     WRITE(*,'(A40,F12.6)')TRIM( ADJUSTL( ' MAXIMUM TIME STEP :  ' ) ), dt_max
     WRITE(*,'(A40,F12.6)')TRIM( ADJUSTL( ' SUGGESTED TIME STEP :  ' ) ), dt
-    WRITE(*,'(A40,I8)')TRIM( ADJUSTL( ' TOTAL TIME STEPS :  ' ) ), t_step_total
+    WRITE(*,'(A40,I8)')TRIM( ADJUSTL( ' TOTAL TIME STEPS :  ' ) ), t_step_tot
     WRITE(*,*)
     WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
     WRITE(*,'(A40,I4)')TRIM( ADJUSTL( ' ESTIMATED TIME (HRS) :' ) ), time_estimate

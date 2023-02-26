@@ -12,7 +12,7 @@
 
 ! #########################
 ! MODULE: system_main
-! LAST MODIFIED: 21 JUNE 2021
+! LAST MODIFIED: 20 FEBRAURY 2023
 ! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -161,12 +161,6 @@ MODULE system_main
     CALL allocate_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
-    ! CALL allocate_strain_tensor
-    ! REF-> <<< system_advdeclaration >>>
-
-    ! CALL allocate_dissipation
-    ! REF-> <<< system_advdeclaration >>>
-
     decor_old = zero + tol_double
 
     CALL compute_decorrelator
@@ -190,18 +184,18 @@ MODULE system_main
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    ! CALL compute_forcing_with_perturbation
-    ! REF-> <<< system_basicfunctions >>>
-
-    CALL solver2_RK4_algorithm
-    ! CALL solver2_AB4_algorithm
-    ! REF-> <<< system_solver >>>
-
     CALL compute_random_forcing
     ! REF-> <<< system_basicfunctions >>>
 
     CALL solver_RK4_algorithm
     ! CALL solver_AB4_algorithm
+    ! REF-> <<< system_solver >>>
+
+		CALL perturb_forcing
+    ! REF-> <<< system_basicfunctions >>>
+
+    CALL solver2_RK4_algorithm
+    ! CALL solver2_AB4_algorithm
     ! REF-> <<< system_solver >>>
 
   END
@@ -281,7 +275,7 @@ MODULE system_main
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
 		t_step = 0
-    LOOP_TIME_EVOLUTION_2: DO WHILE ( decor_normed .LT. 0.99D0 )
+    LOOP_TIME_EVOLUTION_2: DO WHILE ( decor .LT. 0.8D0 )
 
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
@@ -336,42 +330,30 @@ MODULE system_main
 
 		CALL compute_temporal_data
     ! REF-> <<< system_basicfunctions >>>
-print*,diss_rate_viscous,diss_rate_ref,energy
-		IF ( chaos_status .EQ. 1 ) THEN
 
+		IF ( chaos_status .EQ. 1 ) THEN
 	    CALL compute_decorrelator
 	    ! REF-> <<< system_decorrelator >>>
-
-	    ! CALL compute_strain_tensor
-	    ! REF-> <<< system_advfunctions >>>
-
-	    ! CALL compute_strainbased_lyapunov_and_timescales
-	    ! REF-> <<< system_decorrelator >>>
-
-	    ! CALL compute_diffusive_lyapunov_and_timescales
-	    ! REF-> <<< system_decorrelator >>>
-
-	    ! CALL compute_dissipation
-	    ! REF-> <<< system_advfunctions >>>
-
-	    CALL write_decorrelator_growth
-	    ! REF-> <<< system_decorrelator >>>
-
-	    ! CALL write_decorrelator_statistics
-	    ! REF-> <<< system_decorrelator >>>
-
-	    ! CALL compute_cross_correlation
-	    ! REF-> <<< system_decorrelator >>>
-
 		END IF
 
     FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
 
-      CALL compute_random_forcing
-			! IF ( chaos_status .EQ. 0 ) THEN
-	      ! CALL compute_random_forcing
-	      ! REF-> <<< system_basicfunctions >>>
-			! END IF
+			IF ( chaos_status .EQ. 0 ) THEN
+				IF ( time_now .LT. hf * time_total) THEN
+		      CALL compute_random_forcing_adjusted
+					diss_rate_viscous_fixed = 1.5D0 * diss_rate_viscous
+			    IF (MOD(t_step,20) .EQ. 0) THEN
+						print*,diss_rate_viscous,pre_factor_forcing,energy
+					END IF
+				ELSE
+		      CALL compute_random_forcing
+			    IF (MOD(t_step,20) .EQ. 0) THEN
+						print*,diss_rate_viscous,energy
+					END IF
+				END IF
+			ELSE
+	      CALL compute_random_forcing
+			END IF
 
     END IF FORCING_CHECK_401
 
@@ -392,30 +374,15 @@ print*,diss_rate_viscous,diss_rate_ref,energy
 	    ! REF-> <<< system_basicoutput >>>
 
 			IF ( chaos_status .EQ. 1 ) THEN
-		    CALL write_section('sec_per',diff_field(0,:,:))
-	    ! REF-> <<< system_basicoutput >>>
+				CALL compute_generalized_lyapunov
+		    ! REF-> <<< system_decorrelator >>>
+		    CALL write_section('decor',diff_field( 0, : , : ) )
+		    ! REF <<< system_basicoutput >>>
+		    CALL write_section('ds_rate',ds_rate( 0, : , : ) )
+		    ! REF <<< system_basicoutput >>>
+		    CALL compute_pdf_lyapunov
+		    ! REF-> <<< system_decorrelator >>>
 			END IF
-      !CALL write_lyapunov_field
-      ! REF-> <<< system_decorrelator >>>
-
-      !CALL write_timescales_field
-      ! REF-> <<< system_decorrelator >>>
-
-      IF ( t_step .GT. 0 ) THEN
-
-        ! CALL compute_pdf_lyapunov_and_timescales
-        ! REF-> <<< system_decorrelator >>>
-
-        ! CALL compute_pdf_dissipation
-        ! REF-> <<< system_advfunctions >>>
-
-        ! CALL compute_pdf_vortex_stretching
-        ! REF-> <<< system_advfunctions >>>
-
-        ! CALL write_extreme_events
-        ! REF-> <<< system_decorrelator >>>
-
-      END IF
 
     END IF SAVE_DATA_CHECK
 
@@ -478,12 +445,6 @@ print*,diss_rate_viscous,diss_rate_ref,energy
 
     CALL deallocate_solver_system
 
-    ! CALL deallocate_strain_tensor
-    ! REF-> <<< system_advdeclaration >>>
-
-    ! CALL deallocate_dissipation
-    ! REF-> <<< system_advdeclaration >>>
-
 		IF ( chaos_status .EQ. 1 ) THEN
 
 	    CALL deallocate_decorrelator
@@ -494,10 +455,10 @@ print*,diss_rate_viscous,diss_rate_ref,energy
 
 		END IF
 
-    CALL deallocate_velocity
+    CALL deallocate_vorticity
     ! REF-> <<< system_basicdeclaration >>>
 
-    CALL deallocate_vorticity
+    CALL deallocate_velocity
     ! REF-> <<< system_basicdeclaration >>>
 
     CALL deallocate_operators
