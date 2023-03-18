@@ -76,11 +76,12 @@ MODULE system_basicoutput
 		pat_sim    =   '../data/'
     ! path of the output directory for this simulation relative to this file.
 
-    CALL get_simulation_name(nam_sim)
+    ! CALL get_simulation_name(nam_sim)
     ! Creating dated and timed name for the simulation for this particular type
     ! REF:- <<< system_auxilaries >>>
 
-		nam_sim = 'N' // TRIM( ADJUSTL( res_char ) ) // '_' // TRIM( ADJUSTL( nam_sim ) ) // '/'
+		! nam_sim = 'N' // TRIM( ADJUSTL( res_char ) ) // '_' // TRIM( ADJUSTL( nam_sim ) ) // '/'
+		nam_sim = 'N' // TRIM( ADJUSTL( res_char ) ) // '_V' // TRIM( ADJUSTL( vis_char ) ) // '/'
     ! nam_sim    =   'N256_run_V8'
 
 		dir     = 'tur/'

@@ -130,7 +130,7 @@ MODULE system_basicdeclaration
     ! VISCOSITY_SELECTION:
     ! XXXXXXXXXXXXXXXXXXXXXX
     ! vis          = 4.0D0 * 1.0E-3 ! For N=256 ! THIS IS THE REFERENCE VISCOSITY
-    vis            = ( 128.0D0 / DBLE( N ) ) * vis * 2.0E-3
+    vis            = ( 128.0D0 / DBLE( N ) ) * DBLE(vis_int) * 2.0E-4
     ! Viscosity of the system
 
     k_int          = 3
@@ -185,6 +185,9 @@ MODULE system_basicdeclaration
 
     WRITE( res_char, f_i6 ) N
     ! Converting resolution value to character
+
+    WRITE( vis_char, f_i6 ) vis_int
+    ! Converting viscosity value to character
 
 	  CALL compute_system_details
 		! REF-> <<< system_basicdeclaration >>>

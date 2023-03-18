@@ -65,7 +65,7 @@ obj=system_timer.o\
 	system_main.o
 
 # EXECUTABLE
-run=./ex_ECCODE
+run=./ex
 
 # CLEAN COMMANDS
 rmex=rm ex
@@ -98,9 +98,9 @@ ex:$(ob)
 	$(cc) -c $(advfunctions_mod)
 	$(cc) -c $(decor_mod)
 	$(cc) -c $(main_mod)
-	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex_ECCODE
+	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex_GHD
 	$(mkcl)
-	$(run)
+	# $(run)
 
 #----------------------------end-------
 

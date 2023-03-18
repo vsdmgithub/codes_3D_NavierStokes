@@ -275,8 +275,9 @@ MODULE system_main
     !  ---------------------------------------------------------------
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
-		t_step = 0
-    LOOP_TIME_EVOLUTION_2: DO WHILE ( dec .LT. 0.8D0 )
+		! t_step = 0
+    ! LOOP_TIME_EVOLUTION_2: DO WHILE ( dec .LT. 0.8D0 )
+    LOOP_TIME_EVOLUTION_2: DO t_step = 0, t_step_tot
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
 
@@ -296,7 +297,7 @@ MODULE system_main
       ! CALL solver2_AB4_algorithm
       ! REF-> <<< system_solver >>>
 
-		t_step = t_step + 1
+		! t_step = t_step + 1
 	  END DO LOOP_TIME_EVOLUTION_2
 
     ! _________________________________________________________________

@@ -62,6 +62,7 @@ MODULE system_basicvariables
   INTEGER (KIND=4) ::t_step_kol,t_step_grd,t_step_int
   INTEGER (KIND=4) ::cfl_min,cfl
   INTEGER (KIND=4) ::rey_int,rey_tay,rey_kol
+  INTEGER (KIND=4) ::vis_int
   DOUBLE PRECISION ::t_grd,t_kol,t_int
   DOUBLE PRECISION ::l_int,l_kol,l_tay
   DOUBLE PRECISION ::u_kol,u_int
@@ -81,6 +82,7 @@ MODULE system_basicvariables
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   CHARACTER( LEN = 6)  :: res_char
+  CHARACTER( LEN = 6)  :: vis_char
   CHARACTER( LEN = 20) :: icn_type
   CHARACTER( LEN = 1 ) :: run_code
   CHARACTER( LEN = 1 ) :: tst_code

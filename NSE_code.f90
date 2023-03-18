@@ -63,8 +63,7 @@ USE system_timer
   CALL read_input
 	! REF-> <<< system_basicdeclaration >>>
 
-  ! vis = ECCODE ! this will be batched
-	vis = 8.0D0
+  vis_int = GHD ! this will be batched
 
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
