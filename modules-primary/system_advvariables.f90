@@ -9,7 +9,7 @@
 !         |  |         |  |         |  /          \   |     \ |
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
-
+!
 ! ##################
 ! MODULE: system_advvariables
 ! LAST MODIFIED: 20 FEBRAURY 2023
@@ -42,11 +42,7 @@ MODULE system_advvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION,DIMENSION(:),    ALLOCATABLE ::Dis_pdf,Dis_val
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::Dis_fld                ! Dissipation field
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xx,s_yy,s_zz
-  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::s_xy,s_yz,s_zx         ! Strain tensor
-  ! _________________________________________
-  ! FOURIER SPACE ARRAYS
-  ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! DOUBLE COMPLEX  ,DIMENSION(:,:,:),ALLOCATABLE ::dvxx,dvyy,dvzz
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::S_xx,S_yy,S_zz
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::S_xy,S_yz,S_zx         ! Strain tensor
 
 END MODULE system_advvariables

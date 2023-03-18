@@ -48,11 +48,12 @@ MODULE system_advdeclaration
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE(s_xx(0:N-1,0:N-1,0:N-1),s_yy(0:N-1,0:N-1,0:N-1),s_zz(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(s_zx(0:N-1,0:N-1,0:N-1),s_xy(0:N-1,0:N-1,0:N-1),s_yz(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(S_xx(0:N-1,0:N-1,0:N-1),S_yy(0:N-1,0:N-1,0:N-1),S_zz(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(S_zx(0:N-1,0:N-1,0:N-1),S_xy(0:N-1,0:N-1,0:N-1),S_yz(0:N-1,0:N-1,0:N-1))
     ALLOCATE(Dis_fld(0:N-1,0:N-1,0:N-1))
 
     num_bin_dis    = CEILING( ( DBLE(N) / 128.0D0 ) * 100.0D0 )
+    print*,num_bin_dis
     ALLOCATE( Dis_val( num_bin_dis ) )
     ALLOCATE( Dis_pdf( num_bin_dis ) )
 
@@ -69,8 +70,8 @@ MODULE system_advdeclaration
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D E - A  L  L  O  C  A  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEALLOCATE(s_xx,s_yy,s_zz)
-    DEALLOCATE(s_xy,s_yz,s_zx)
+    DEALLOCATE(S_xx,S_yy,S_zz)
+    DEALLOCATE(S_xy,S_yz,S_zx)
     DEALLOCATE(Dis_fld)
     DEALLOCATE(Dis_val)
     DEALLOCATE(Dis_pdf)

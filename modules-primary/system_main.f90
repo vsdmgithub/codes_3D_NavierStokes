@@ -95,6 +95,7 @@ MODULE system_main
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
       CALL normalized_initial_condition
       ! REF-> <<< system_basicfunctions >>>
 
@@ -105,7 +106,7 @@ MODULE system_main
 
     END IF TIME_STEP_MIN_CHECK
 
-    PRECHECK_STATUS_101: IF ( precheck_status .EQ. 1 ) THEN
+    PRECHECK_STATUS_101: IF ( pre_status .EQ. 1 ) THEN
 
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
@@ -113,13 +114,13 @@ MODULE system_main
       !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
       !      'rk'- RUNGA KUTTA 4TH ORDER ALG
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH HHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-              solver_alg  = 'rk'
+              sol_algm  = 'rk'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
       CALL allocate_solver_system
       ! Allocates arrays for solver
 
-      RUN_CODE_CHECK:IF ( run_code .EQ. 'y' ) THEN
+      RUN_CODE_CHECK:IF(( run_code .EQ. 'y' ) .AND. ( tst_code .EQ. 'n')) THEN
 
         CALL prepare_output
         ! Create names, folders to save files, open files in them to write data.
@@ -144,31 +145,31 @@ MODULE system_main
 
     IMPLICIT NONE
 
-		CALL allocate_chaos_arrays
+		CALL allocate_lyapunov_arrays
 		! REF-> <<< system_basicdeclaration >>>
 
-    v2_x = v_x
-    v2_y = v_y
-    v2_z = v_z
+    Vb_x = V_x
+    Vb_y = V_y
+    Vb_z = V_z
 
 		CALL create_perturbation_by_forcing
 
-		CALL prepare_output_chaos
+		CALL prepare_output_lyapunov
 	  ! REF-> <<< system_basicoutput >>>
 
-		chaos_status = 1
+		lyp_status = 1
 
     CALL allocate_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
-    decor_old = zero + tol_double
+    dec_pre = zero + tol_double
 
     CALL compute_decorrelator
     ! REF-> <<< system_decorrelator >>>
 
-    decor_initial = decor
+    dec_ini = dec
 
-    WRITE(*,"(A22,ES8.2)")'DECOR_INITIAL:= ',decor_initial
+    WRITE(*,"(A22,ES8.2)")'DECOR_INITIAL:= ',dec_ini
 
 	END
 
@@ -184,7 +185,7 @@ MODULE system_main
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    CALL compute_random_forcing
+    CALL compute_random_forcing_fixed_dissipation
     ! REF-> <<< system_basicfunctions >>>
 
     CALL solver_RK4_algorithm
@@ -220,11 +221,11 @@ MODULE system_main
     ! ---------------------------------------------------------------
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
-    LOOP_TIME_EVOLUTION: DO t_step = 0, t_step_total
+    LOOP_TIME_EVOLUTION: DO t_step = 0, t_step_tot
 
       CALL inter_analysis ! Does all analysis in between time steps. Including saving data
 
-      DEBUG_ERROR_CHECK:IF ( debug_error .EQ. 1 ) THEN
+      DEBUG_ERROR_CHECK:IF ( deb_err .EQ. 1 ) THEN
         EXIT ! Meaning some error in computation.
       END IF DEBUG_ERROR_CHECK
 
@@ -240,7 +241,7 @@ MODULE system_main
 	  CALL compute_system_details
 		! REF-> <<< system_basicdeclaration >>>
 
-    CALL write_simulation_end_details
+    CALL write_simulation_details('end')
     ! REF-> <<< system_basicoutput >>>
     ! Writes the parameters used in the simulation at end
 
@@ -253,7 +254,7 @@ MODULE system_main
 
 	END
 
-  SUBROUTINE time_evolution_chaos
+  SUBROUTINE time_evolution_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! Loop of time steps, where at each step the spectral velocities
@@ -275,11 +276,11 @@ MODULE system_main
     !             T   I   M   E       L  O  O  P
     ! _________________________________________________________________
 		t_step = 0
-    LOOP_TIME_EVOLUTION_2: DO WHILE ( decor .LT. 0.8D0 )
-
+    LOOP_TIME_EVOLUTION_2: DO WHILE ( dec .LT. 0.8D0 )
       CALL inter_analysis
       ! Does all analysis in between time steps. Including saving data
-      DEBUG_ERROR_CHECK:IF ( debug_error .EQ. 1 ) THEN
+
+      DEBUG_ERROR_CHECK:IF ( deb_err .EQ. 1 ) THEN
         EXIT
         ! Meaning some error in computation.
       END IF DEBUG_ERROR_CHECK
@@ -306,9 +307,9 @@ MODULE system_main
     !                    E     N     D
     ! 8888888888888888888888888888888888888888888888888888888888888888
 
-    decor_final = decor
+    dec_fin = dec
 
-    WRITE(*,"(A22,ES8.2)")'DECOR_FINAL:= ',decor_final
+    WRITE(*,"(A22,ES8.2)")'DECOR_FINAL:= ',dec_fin
 
 	END
 
@@ -320,7 +321,7 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL step_to_time_convert(t_step,time_now,dt)
+    CALL step_to_time_convert(t_step,t_now,dt)
     ! Converts the 't_step' to actual time 'time_now'
     ! REF-> <<< system_auxilaries >>>
 
@@ -331,28 +332,36 @@ MODULE system_main
 		CALL compute_temporal_data
     ! REF-> <<< system_basicfunctions >>>
 
-		IF ( chaos_status .EQ. 1 ) THEN
+		IF ( lyp_status .EQ. 1 ) THEN
 	    CALL compute_decorrelator
 	    ! REF-> <<< system_decorrelator >>>
 		END IF
 
-    FORCING_CHECK_401: IF ( forcing_status .EQ. 1 ) THEN
+    FORCING_CHECK_401: IF ( frc_status .EQ. 1 ) THEN
 
-			IF ( chaos_status .EQ. 0 ) THEN
-				IF ( time_now .LT. hf * time_total) THEN
-		      CALL compute_random_forcing_adjusted
-					diss_rate_viscous_fixed = 1.5D0 * diss_rate_viscous
-			    IF (MOD(t_step,20) .EQ. 0) THEN
-						print*,diss_rate_viscous,pre_factor_forcing,energy
-					END IF
+			IF ( lyp_status .EQ. 0 ) THEN
+				IF ( t_now .LT. two * t_int ) THEN
+		      CALL compute_random_forcing_uncorrelated_velocity
+					dis_fix = frc_fac_avg
+			    ! IF (MOD(t_step,20) .EQ. 0) THEN
+					! 	PRINT*,t_now,dis,frc_fac,eng,frc_fac_avg
+					! END IF
+
 				ELSE
-		      CALL compute_random_forcing
-			    IF (MOD(t_step,20) .EQ. 0) THEN
-						print*,diss_rate_viscous,energy
-					END IF
+
+		      CALL compute_random_forcing_fixed_dissipation
+			    ! IF ( MOD( t_step, 20 ) .EQ. 0 ) THEN
+					! 	PRINT*,t_now,dis,eng
+					! END IF
+
 				END IF
 			ELSE
-	      CALL compute_random_forcing
+
+	      CALL compute_random_forcing_fixed_dissipation
+		    ! IF ( MOD( t_step, 20 ) .EQ. 0 ) THEN
+				! 	PRINT*,t_now,dis,eng
+				! END IF
+
 			END IF
 
     END IF FORCING_CHECK_401
@@ -360,52 +369,31 @@ MODULE system_main
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
-    SAVE_DATA_CHECK:IF (MOD(t_step,t_step_save) .EQ. 0) THEN
-
+    SAVE_DATA_CHECK:IF (MOD(t_step,t_step_sav) .EQ. 0) THEN
 	    CALL compute_spectral_data
 	    ! REF-> <<< system_basicfunctions >>>
 
 	    CALL write_spectral_data
 	    ! REF-> <<< system_basicoutput >>>
 
-	    ! CALL write_section('sec_velX',u_x(Nh,:,:))
-	    ! CALL write_section('sec_vorX',w_ux(0,:,:))
-	    CALL write_section('sec_vorZ',w_uz(0,:,:))
-	    ! REF-> <<< system_basicoutput >>>
-
-			IF ( chaos_status .EQ. 1 ) THEN
-				CALL compute_generalized_lyapunov
-		    ! REF-> <<< system_decorrelator >>>
-		    CALL write_section('decor',diff_field( 0, : , : ) )
-		    ! REF <<< system_basicoutput >>>
-		    CALL write_section('ds_rate',ds_rate( 0, : , : ) )
-		    ! REF <<< system_basicoutput >>>
+			IF ( lyp_status .EQ. 1 ) THEN
 		    CALL compute_pdf_lyapunov
 		    ! REF-> <<< system_decorrelator >>>
+		    CALL write_section('dec_fld',Dec_fld( 0, : , : ) )
+		    CALL write_section('lyp_fld',Lyp_fld( 0, : , : ) )
+		    CALL write_section('dis_fld',Dis_fld( 0, : , : ) )
+		    ! REF <<< system_basicoutput >>>
+			ELSE
+		    CALL write_section('sec_vorZ',W_z( 0 , : , : ) )
+		    ! REF-> <<< system_basicoutput >>>
 			END IF
 
     END IF SAVE_DATA_CHECK
 
-    SAVE_DATA_CHECK_3D:IF (MOD(t_step,t_step_3D_save) .EQ. 0) THEN
-
-      ! CALL write_PVD_velocity
-      ! REF-> <<< system_pvdoutput >>>
-
-      ! CALL compute_vorticity
-      ! REF-> <<< system_basicfunctions >>>
-
-      ! CALL write_PVD_vorticity
-      ! REF-> <<< system_pvdoutput >>>
-
-      ! CALL write_PVD_vorticity_subset
-      ! REF-> <<< system_pvdoutput >>>
-
-    END IF SAVE_DATA_CHECK_3D
-
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D  E  B  U  G             F  O  R          N  a   N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DEBUG:IF (MOD(t_step,t_step_debug) .EQ. 0) THEN
+    DEBUG:IF (MOD(t_step,t_step_deb) .EQ. 0) THEN
 
       CALL perform_debug
       ! REF-> <<< system_basicfunctions >>>
@@ -428,7 +416,7 @@ MODULE system_main
     ! CALL compute_velocity_gradient
     ! REF-> <<< system_advfunctions >>>
 
-    ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    ! CALL fft_c2r( V_x, V_y, V_z, N, Nh, U_x, U_y, U_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
     ! CALL write_spectral_velocity
@@ -445,12 +433,12 @@ MODULE system_main
 
     CALL deallocate_solver_system
 
-		IF ( chaos_status .EQ. 1 ) THEN
+		IF ( lyp_status .EQ. 1 ) THEN
 
 	    CALL deallocate_decorrelator
 	    ! REF-> <<< system_decorrelator >>>
 
-			CALL deallocate_chaos_arrays
+			CALL deallocate_lyapunov_arrays
 	    ! REF-> <<< system_basicdeclaration >>>
 
 		END IF
@@ -464,7 +452,7 @@ MODULE system_main
     CALL deallocate_operators
     ! REF-> <<< system_basicdeclaration >>>
 
-    simulation_status = 1
+    sim_status = 1
     ! Stating that the simulation has ended.
 
   END
@@ -480,7 +468,7 @@ MODULE system_main
     CALL allocate_solver
       ! REF-> <<< system_solver >>>
 
-    IF ( solver_alg .EQ. 'ab') THEN
+    IF ( sol_algm .EQ. 'ab') THEN
 
       CALL allocate_solver_AB4
       ! REF-> <<< system_solver >>>
@@ -506,7 +494,7 @@ MODULE system_main
     CALL deallocate_solver
     ! REF-> <<< system_solver >>>
 
-    IF ( solver_alg .EQ. 'ab') THEN
+    IF ( sol_algm .EQ. 'ab') THEN
 
       CALL deallocate_solver_AB4
       ! REF-> <<< system_solver >>>

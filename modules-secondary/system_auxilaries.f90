@@ -63,7 +63,7 @@ MODULE system_auxilaries
 		INTEGER(KIND=4),INTENT(IN)::k_int
 		DOUBLE PRECISION::adjust_factor
 
-		adjust_factor = 2.0D0
+		adjust_factor = 1.0D0
 		! Refined adjusting factor
 
 		ds = ( en ** 1.5D0 ) * k_int / ( two_pi )

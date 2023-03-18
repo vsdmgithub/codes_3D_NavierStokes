@@ -130,7 +130,7 @@ MODULE system_initialcondition
       k_rat   = DSQRT( Lapla( j_x, j_y, j_z) ) / DBLE(k_int)
 
       V_k_mod = nrm_fac * k_rat**( hf * ple_exp - 1 ) &
-                * DEXP( - qtr * ple_exp * ( k_rat ** two ) )
+                * DEXP( - qtr * ple_exp * ( k_rat ** 4.0D0 ) )
 
       V_k(1)  = V_k_mod * DSIN( the ) * DCOS( phi ) * DCMPLX( DCOS( phs( 1 ) ), DSIN( phs( 1 ) ) )
       V_k(2)  = V_k_mod * DSIN( the ) * DSIN( phi ) * DCMPLX( DCOS( phs( 2 ) ), DSIN( phs( 2 ) ) )

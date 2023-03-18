@@ -150,7 +150,7 @@ MODULE system_basicdeclaration
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    num_deb        = 10
+    num_deb        = 5
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     sim_status     = 0
@@ -183,7 +183,7 @@ MODULE system_basicdeclaration
     deb_err      = 0
     ! some error found during debug (could be either nan or incomp)
 
-    WRITE( res_char, f_i8 ) N
+    WRITE( res_char, f_i6 ) N
     ! Converting resolution value to character
 
 	  CALL compute_system_details
@@ -240,10 +240,11 @@ MODULE system_basicdeclaration
     t_grd      = l_grd / u_int
     ! Time for particle to cross a grid
 
-		l_tay      = DSQRT( two * fiv * vis * eng / dis )
-		! Taylor scale
-		k_tay      = CEILING( l_sys / l_tay )
-		! Integral scale wavenumber
+    l_tay      = DSQRT( two * fiv * vis * eng / dis )
+    ! Taylor scale
+
+    k_tay      = CEILING( l_sys / l_tay )
+    ! Integral scale wavenumber
 
     rey_int    = FLOOR( DSQRT( eng ) * l_int / vis )
     rey_tay    = FLOOR( DSQRT( two / thr ) * DSQRT( eng ) * l_tay / vis )
@@ -310,7 +311,7 @@ MODULE system_basicdeclaration
     num_mod_frc = 0
     num_mod     = 0
 
-    k_frc       = 3
+    k_frc       = 2
     ! Wavenumbers below which forcing is implemented
 
     ! +++++++++++++++++++++++++++++++++
@@ -371,9 +372,6 @@ MODULE system_basicdeclaration
         Shell( j_x, j_y, j_z )        = CEILING( k_mod )
       END IF SHELL_ALLOCATION
 
-      Den_k( Shell( j_x, j_y, j_z ) ) = Den_k( Shell( j_x, j_y, j_z ) ) + 1
-      ! counts no of grid points that belong to a particular shell, it should go as ~4 pi s^2
-
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  T  R  U  N  C  A  T  I  O  N  ,   S  H  E  L  L           M  A  T  R  I  X
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -385,6 +383,9 @@ MODULE system_basicdeclaration
 
         num_mod                = num_mod + 1
         ! Total no of active modes inside the truncation sphere.
+
+	      Den_k( Shell( j_x, j_y, j_z ) ) = Den_k( Shell( j_x, j_y, j_z ) ) + 1
+	      ! counts no of grid points that belong to a particular shell, it should go as ~2 pi s^2
 
       ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ! D I S S I P A T I O N I N T . F A C T O R M A T R I X
@@ -402,7 +403,7 @@ MODULE system_basicdeclaration
       !  F O R C I N G     S H E L L    C O U N T
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       FORCING_CHECK_101: IF ( frc_status .EQ. 1 ) THEN
-      FORCING_SHELL_COUNT_101:  IF ( Shell( j_x, j_y, j_z ) .EQ. k_frc )  THEN
+      FORCING_SHELL_COUNT_101:  IF ( ( Shell( j_x, j_y, j_z ) .EQ. k_frc ) .AND. ( j_x .GT. 0 ) )  THEN
         num_mod_frc = num_mod_frc + 1
       END IF FORCING_SHELL_COUNT_101
 	    END IF FORCING_CHECK_101
@@ -421,7 +422,7 @@ MODULE system_basicdeclaration
       ALLOCATE( F_kz_ind( num_mod_frc ) )
 
       ct = 0
-      LOOP_FX_201: DO j_x = 0, Nh
+      LOOP_FX_201: DO j_x = 1, Nh
       LOOP_FY_201: DO j_y = -Nh, Nh - 1
       LOOP_FZ_201: DO j_z = -Nh, Nh - 1
 
@@ -429,7 +430,7 @@ MODULE system_basicdeclaration
         !  F O R C I N G     S H E L L    D A T A
         !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         FORCING_SHELL_COUNT_201:  IF ( Shell( j_x, j_y, j_z ) .EQ. k_frc )  THEN
-          ct        = ct + 1
+          ct             = ct + 1
           F_kx_ind( ct ) = j_x
           F_ky_ind( ct ) = j_y
           F_kz_ind( ct ) = j_z
@@ -506,7 +507,7 @@ MODULE system_basicdeclaration
 
   END
 
-  SUBROUTINE allocate_chaos_arrays
+  SUBROUTINE allocate_lyapunov_arrays
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate arrays related to chaos measurement
@@ -581,7 +582,7 @@ MODULE system_basicdeclaration
 
 	END
 
-	SUBROUTINE deallocate_chaos_arrays
+	SUBROUTINE deallocate_lyapunov_arrays
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays

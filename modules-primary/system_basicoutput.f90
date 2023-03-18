@@ -59,7 +59,7 @@ MODULE system_basicoutput
     CALL create_output_dir
     ! Creates the directories
 
-    CALL write_simulation_start_details
+    CALL write_simulation_details('start')
     ! Writes the parameters used in the simulation
 
 	END
@@ -80,7 +80,7 @@ MODULE system_basicoutput
     ! Creating dated and timed name for the simulation for this particular type
     ! REF:- <<< system_auxilaries >>>
 
-		nam_sim = TRIM( ADJUSTL( res_char ) ) // '_' // TRIM( ADJUSTL( nam_sim ) ) // '/'
+		nam_sim = 'N' // TRIM( ADJUSTL( res_char ) ) // '_' // TRIM( ADJUSTL( nam_sim ) ) // '/'
     ! nam_sim    =   'N256_run_V8'
 
 		dir     = 'tur/'
@@ -104,18 +104,18 @@ MODULE system_basicoutput
     !  E  N  E  R  G  Y      S  P  E  C  T  R  U  M
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     OPEN( UNIT = 1301, FILE = fil_name )
-    DO k_ind = 1 , k_max
+    DO k_ind = 1 , k_tru
 
       WRITE(1301,f_i8,ADVANCE  ='no')       k_ind
-      WRITE(1301,f_d32p17,ADVANCE ='no')    Den_k( k_ind )
-      WRITE(1301,f_d32p17,ADVANCE ='yes')   two * two_pi * DBLE( k_ind * k_ind )
+      WRITE(1301,f_i8,ADVANCE  ='no')        Den_k( k_ind )
+      WRITE(1301,f_d32p17,ADVANCE ='yes')   two_pi * DBLE( k_ind * k_ind )
 
     END DO
     CLOSE(1301)
 
 	END
 
-  SUBROUTINE prepare_output_lyp
+  SUBROUTINE prepare_output_lyapunov
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -208,8 +208,8 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,I8)")    'Taylor. Mode        ','= ',k_tay
     WRITE(233,"(A20,A2,I8)")    'Forcing. Mode       ','= ',k_frc
     WRITE(233,"(A20,A2,I8)")    'Integral. Mode      ','= ',k_int
-    WRITE(233,"(A20,A3,I9)")    'Modes Active.       ','= ',num_mod
-    WRITE(233,"(A20,A3,I9)")    'Modes Rorced.       ','= ',num_mod_frc
+    WRITE(233,"(A20,A3,I8)")    'Modes Active.       ','= ',num_mod
+    WRITE(233,"(A20,A3,I8)")    'Modes Forced.       ','= ',num_mod_frc
     WRITE(233,"(A20,A2,F8.2)")  'Resolving power     ','= ',res_pow
     WRITE(233,"(A20,A2,I8)")    'CFL system          ','= ',cfl
     WRITE(233,"(A20,A2,F8.6)")  'Grid time           ','= ',t_grd
@@ -219,7 +219,7 @@ MODULE system_basicoutput
     WRITE(233,"(A20,A2,F8.4)")  'Kol Velocity        ','= ',u_kol
     WRITE(233,"(A20,A2,F8.4)")  'Energy              ','= ',eng
     WRITE(233,"(A20,A2,F8.4)")  'Enstrophy           ','= ',ens
-    WRITE(233,"(A20,A2,F8.4)")  'Helicity            ','= ',hel
+    ! WRITE(233,"(A20,A2,F8.4)")  'Helicity            ','= ',hel
     WRITE(233,"(A20,A2,F8.4)")  'Dissipation Rate    ','= ',dis
     WRITE(233,"(A20,A2,ES8.2)") 'Compressibility     ','= ',inc
     WRITE(233,"(A20,A2,A8)")    'Initial Condition   ','= ',TRIM( ADJUSTL( icn_type ) )
@@ -248,8 +248,8 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,I8)")    'Taylor. Mode        ','= ',k_tay
     WRITE(*,"(A20,A2,I8)")    'Forcing. Mode       ','= ',k_frc
     WRITE(*,"(A20,A2,I8)")    'Integral. Mode      ','= ',k_int
-    WRITE(*,"(A20,A3,I9)")    'Modes Active.       ','= ',num_mod
-    WRITE(*,"(A20,A3,I9)")    'Modes Rorced.       ','= ',num_mod_frc
+    WRITE(*,"(A20,A3,I8)")    'Modes Active.       ','= ',num_mod
+    WRITE(*,"(A20,A3,I8)")    'Modes Forced.       ','= ',num_mod_frc
     WRITE(*,"(A20,A2,F8.2)")  'Resolving power     ','= ',res_pow
     WRITE(*,"(A20,A2,I8)")    'CFL system          ','= ',cfl
     WRITE(*,"(A20,A2,F8.6)")  'Grid time           ','= ',t_grd
@@ -259,7 +259,7 @@ MODULE system_basicoutput
     WRITE(*,"(A20,A2,F8.4)")  'Kol Velocity        ','= ',u_kol
     WRITE(*,"(A20,A2,F8.4)")  'Energy              ','= ',eng
     WRITE(*,"(A20,A2,F8.4)")  'Enstrophy           ','= ',ens
-    WRITE(*,"(A20,A2,F8.4)")  'Helicity            ','= ',hel
+    ! WRITE(*,"(A20,A2,F8.4)")  'Helicity            ','= ',hel
     WRITE(*,"(A20,A2,F8.4)")  'Dissipation Rate    ','= ',dis
     WRITE(*,"(A20,A2,ES8.2)") 'Compressibility     ','= ',inc
     WRITE(*,"(A20,A2,A8)")    'Initial Condition   ','= ',TRIM( ADJUSTL( icn_type ) )
@@ -294,11 +294,14 @@ MODULE system_basicoutput
 	    eng_B = hf * SUM( Ub_x ** two + Ub_y ** two + Ub_z ** two ) / N3
 	    WRITE(4004,f_d32p17,ADVANCE ='no')  eng_B
 		END IF
-		WRITE(4004,f_d32p17,ADVANCE ='no')  ens
-    WRITE(4004,f_d32p17,ADVANCE ='no')  hel
-    WRITE(4004,f_d32p17,ADVANCE ='no')  dis
-    WRITE(4004,f_d32p17,ADVANCE ='no')  frc_fac
-    WRITE(4004,f_d32p17,ADVANCE ='yes') dis_eng
+		! WRITE(4004,f_d32p17,ADVANCE ='no')  ens
+		! WRITE(4004,f_d32p17,ADVANCE ='no')  hel
+		WRITE(4004,f_d32p17,ADVANCE ='no')  dis
+		IF ( lyp_status .EQ. 0 ) THEN
+			WRITE(4004,f_d32p17,ADVANCE ='no')  frc_fac
+			WRITE(4004,f_d32p17,ADVANCE ='no')  frc_fac_avg
+		END IF
+		WRITE(4004,f_d32p17,ADVANCE ='yes') dis_eng
 
     IF ( t_step .EQ. t_step_tot ) THEN
       CLOSE(4004)
@@ -461,16 +464,16 @@ MODULE system_basicoutput
 
 		IF ( lyp_status .EQ. 0 ) THEN
 	    IF ( t_step .EQ. 0 ) THEN
-	      WRITE(*,'(A83)') &
+	      WRITE(*,'(A68)') &
 				TRIM( ADJUSTL( '-----------------------------------------------------------------------------------' ) )
-	      WRITE(*,'(A77)') &
+	      WRITE(*,'(A52)') &
 				TRIM( ADJUSTL( &
 				'| TIME | ENERGY | DISSIPATION | INCOMPRESSIBILITY |'  ) )
-	      WRITE(*,'(A83)') &
+	      WRITE(*,'(A68)') &
 				TRIM( ADJUSTL( '-----------------------------------------------------------------------------------' ) )
 	    END IF
 	    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	    WRITE(*,'(F6.2,A3,F8.4,A3,F12.6,A3,E10.2)')&
+	    WRITE(*,'(F6.2,A3,F8.4,A3,F10.6,A5,E10.2)')&
 			 t_now,'   ',eng,'    ',dis,'   ',inc
 	    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	    IF ( t_step .EQ. t_step_tot ) THEN
@@ -486,8 +489,8 @@ MODULE system_basicoutput
 				TRIM( ADJUSTL( '-----------------------------------------------------------------------------------' ) )
 	    END IF
 	    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	    WRITE(*,'(F6.3,A3,F6.4,A3,F6.4,A3,E8.2,A3,F8.4,A5,F8.4,A5,E10.2)')&
-			 t_now,'   ',eng,'   ',eng_B,'   ',dec,'   ',lyp_dec,'     ',dis,'     ',inc
+	    WRITE(*,'(F6.3,A3,F6.4,A4,F6.4,A3,E8.2,A3,F8.4,A5,F8.4,A5,E10.2)')&
+			 t_now,'   ',eng,'    ',eng_B,'   ',dec,'   ',lyp_dec,'     ',dis,'     ',inc
 	    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		END IF
 

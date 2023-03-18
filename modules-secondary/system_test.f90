@@ -117,6 +117,7 @@ MODULE system_test
     END IF
 
     CALL compute_spectral_data
+    ! REF-> <<< system_basicfunctions >>>
 
     CALL CPU_TIME( time_end )
     time_seconds   =    time_end - time_start
@@ -148,13 +149,6 @@ MODULE system_test
     WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
     WRITE(*,'(A40,I4)')TRIM( ADJUSTL( ' ESTIMATED TIME (HRS) :' ) ), time_estimate
     WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
-
-
-    CALL deallocate_velocity
-
-    CALL deallocate_vorticity
-
-    CALL deallocate_operators
 
 	END
 

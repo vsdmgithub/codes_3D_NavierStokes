@@ -63,8 +63,8 @@ USE system_timer
   CALL read_input
 	! REF-> <<< system_basicdeclaration >>>
 
-  ! viscosity = ECCODE ! this will be batched
-	viscosity = 8.0D0
+  ! vis = ECCODE ! this will be batched
+	vis = 8.0D0
 
   CALL init_global_variables
 	! REF-> <<< system_basicdeclaration >>>
@@ -72,19 +72,19 @@ USE system_timer
 	CALL init_global_arrays
 	! REF-> <<< system_basicdeclaration >>>
 
-	test_code		= 'n'
+	tst_code		= 'n'
 	! Simple way to ON or OFF the testing of the simulation - Measures the time for evolution
 
-  run_code 		= 'y'
+	run_code 		= 'y'
 	! Simple way to ON or OFF the running of the simulation.
 
-  CODE_EVALUTION:IF ( run_code .EQ. 'y' ) THEN
+  CODE_EVALUTION:IF (( run_code .EQ. 'y' ) .AND. ( tst_code .EQ. 'n')) THEN
 
     CALL pre_analysis
-    ! Allocating the evolution arrays, if everything is set, 'check_status' will be 1.
+    ! Allocating the evolution arrays, if everything is set, 'pre_status' will be 1.
 		! REF-> <<< system_main >>>
 
-    PRECHECK_STATUS_102: IF ( precheck_status .EQ. 1 ) THEN
+    PRECHECK_STATUS_102: IF ( pre_status .EQ. 1 ) THEN
 
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('   S  I  M  U  L  A  T  I  O  N        S  T  A  R  T  S '))
@@ -99,11 +99,11 @@ USE system_timer
 			! Makes a copy and pertubs by one time step evolution with and without forcing for them.
 			! REF-> <<< system_main >>>
 
-      CALL time_evolution_chaos
+      CALL time_evolution_lyapunov
       ! Solve the 3D NSE equation, in discrete time using pseudospectral method.
 			! REF-> <<< system_main >>>
 
-			IF ( debug_error .NE. 1 ) THEN
+			IF ( deb_err .NE. 1 ) THEN
 
 			  CALL post_analysis
 	      ! Does the post-analysis, final outputs and deallocation
@@ -113,7 +113,7 @@ USE system_timer
 
     END IF PRECHECK_STATUS_102
 
-    IF ( simulation_status .EQ. 1 ) THEN
+    IF ( sim_status .EQ. 1 ) THEN
 
 			WRITE(*,*)
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
@@ -124,7 +124,7 @@ USE system_timer
 
   END IF CODE_EVALUTION
 
-	TEST_EVOLUTION:IF ( test_code .EQ. 'y' ) THEN
+	TEST_EVOLUTION:IF ( tst_code .EQ. 'y' ) THEN
 
 		CALL pre_analysis
     ! Allocating the evolution arrays
@@ -137,6 +137,9 @@ USE system_timer
 		CALL test_evolution_time
 		! Checks time for one evolution step - predicts total time
 		! REF-> <<< system_test >>>
+
+	  CALL post_analysis
+		! REF-> <<< system_main >>>
 
 	END IF TEST_EVOLUTION
 

@@ -76,6 +76,13 @@ MODULE system_basicfunctions
 
     END IF
 
+    ! To store history of forcing factor
+    CALL time_to_step_convert(t_int,t_step_int,dt)
+    ALLOCATE(frc_fac_his(0:t_step_int))
+    frc_fac_his = zero
+    print*,"Int. time steps= ",t_step_int
+
+
   END
 
   SUBROUTINE compute_spectral_data
@@ -103,16 +110,16 @@ MODULE system_basicfunctions
     ! Gets the energy in that particular mode (i_x,i_y,i_z)
     ! Keeps adding energy to that particular shell (|k| fixed), from all solid angles
 
-    DO j_x =    1 , k_tru
+    DO j_x =      1 , k_tru
     DO j_y = - k_tru, k_tru
     DO j_z = - k_tru, k_tru
     IF ( Lapla ( j_x, j_y, j_z ) .LT. k_tru_sqr ) THEN
 
-      sh_no                       = Shell( j_x, j_y, j_z )
-      eng_mod                 = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_z( j_x, j_y, j_z ) ) ** two
-      Eng_k( sh_no )    = Eng_k( sh_no )    + eng_mod
+      sh_no          = Shell( j_x, j_y, j_z )
+      eng_mod        = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_z( j_x, j_y, j_z ) ) ** two
+      Eng_k( sh_no ) = Eng_k( sh_no ) + eng_mod
 
     END IF
     END DO
@@ -124,11 +131,11 @@ MODULE system_basicfunctions
     DO j_z = - k_tru, -1
     IF ( Lapla ( j_x, j_y, j_z ) .LT. k_tru_sqr ) THEN
 
-      sh_no                       = Shell( j_x, j_y, j_z )
-      eng_mod                 = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_z( j_x, j_y, j_z ) ) ** two
-      Eng_k( sh_no )    = Eng_k( sh_no )    + eng_mod
+      sh_no          = Shell( j_x, j_y, j_z )
+      eng_mod        = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_z( j_x, j_y, j_z ) ) ** two
+      Eng_k( sh_no ) = Eng_k( sh_no ) + eng_mod
 
     END IF
     END DO
@@ -137,28 +144,28 @@ MODULE system_basicfunctions
     j_z    = 0
     DO j_y = 1, k_tru
 
-      sh_no                       = Shell( j_x, j_y, j_z )
-      eng_mod                 = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
-                                    CDABS( V_z( j_x, j_y, j_z ) ) ** two
-      Eng_k( sh_no )    = Eng_k( sh_no )      + eng_mod
+      sh_no          = Shell( j_x, j_y, j_z )
+      eng_mod        = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
+                       CDABS( V_z( j_x, j_y, j_z ) ) ** two
+      Eng_k( sh_no ) = Eng_k( sh_no ) + eng_mod
 
     END DO
 
     j_y = 0
-    sh_no                       = Shell( j_x, j_y, j_z )
-    eng_mod                 = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
-                                  CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
-                                  CDABS( V_z( j_x, j_y, j_z ) ) ** two
-    Eng_k( sh_no )    = Eng_k( sh_no )        + hf * eng_mod
+    sh_no          = Shell( j_x, j_y, j_z )
+    eng_mod        = CDABS( V_x( j_x, j_y, j_z ) ) ** two + &
+                     CDABS( V_y( j_x, j_y, j_z ) ) ** two + &
+                     CDABS( V_z( j_x, j_y, j_z ) ) ** two
+    Eng_k( sh_no ) = Eng_k( sh_no ) + hf * eng_mod
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  S  H  E  L  L      A  V  E  R  A  G  I  N  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Eng_k_avg( 0 )         = Eng_k( 0 )
-    Eng_k_avg( 1 )         = qtr * ( thr * Eng_k( 1 )    + Eng_k( 2 ) )
-    DO k_ind                          = 2, k_max - 1
-      Eng_k_avg( k_ind )    = qtr * ( Eng_k( k_ind - 1 )    + Eng_k( k_ind + 1 ) ) + &
-                                        hf * ( Eng_k( k_ind ) )
+    Eng_k_avg( 0 )       = Eng_k( 0 )
+    Eng_k_avg( 1 )       = qtr * ( thr * Eng_k( 1 ) + Eng_k( 2 ) )
+    DO k_ind             = 2, k_max - 1
+      Eng_k_avg( k_ind ) = qtr * ( Eng_k( k_ind - 1 ) + Eng_k( k_ind + 1 ) ) + &
+                            hf * ( Eng_k( k_ind ) )
     END DO
 
     ! eng = SUM( Eng_k )
@@ -181,7 +188,7 @@ MODULE system_basicfunctions
     CALL compute_energy
     CALL compute_vorticity
     CALL compute_enstrophy
-    CALL compute_helicity
+    ! CALL compute_helicity
 
     dis_eng = ( eng_pre - eng ) / dt  ! Estimates the dissipation rate of energy
     dis     = two * vis * ens         ! Estimates the viscous dissipation
@@ -243,7 +250,7 @@ MODULE system_basicfunctions
 
   END
 
-  SUBROUTINE compute_random_forcing_adjusted
+  SUBROUTINE compute_random_forcing_uncorrelated_velocity
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -255,12 +262,13 @@ MODULE system_basicfunctions
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    INTEGER(KIND=4)::ct
+    INTEGER(KIND=4)::ct,t_step_dum
     DOUBLE PRECISION::phi
     DOUBLE COMPLEX::r_x,r_y,r_z
     DOUBLE PRECISION::r_nrm
 
-		frc_fac = dis  * ( ( one - 10.0D0 * ( eng - eng_0 ) ) ** 8.0D0 )
+		frc_fac = dis  * ( ( one - 20.0D0 * ( eng - eng_0 ) ) ** 8.0D0 )
+		! frc_fac = dis
 
     nrm_fac = DSQRT( frc_fac / ( num_mod_frc * dt ) )
 
@@ -293,9 +301,20 @@ MODULE system_basicfunctions
 
     END DO LOOP_FORCING_MODES_309
 
+    IF ( t_step .LE. t_step_int ) THEN
+      frc_fac_his( t_step ) = frc_fac
+    ELSE
+      DO t_step_dum = 0,t_step_int-1
+        frc_fac_his( t_step_dum ) = frc_fac_his( t_step_dum + 1 )
+      END DO
+      frc_fac_his( t_step_int ) = frc_fac
+    END IF
+
+    frc_fac_avg = SUM( frc_fac_his ) / ( t_step_int + 1 )
+
   END
 
-  SUBROUTINE compute_random_forcing
+  SUBROUTINE compute_random_forcing_fixed_dissipation
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -329,9 +348,9 @@ MODULE system_basicfunctions
       CALL RANDOM_NUMBER(the)
       CALL RANDOM_NUMBER(phs)
 
-      phi     = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
-      the   = DACOS( one - two * the )! Polar angle of \hat{u}_k vector
-      phs      = two_pi * phs ! Phases of \hat{u}_k components
+      phi = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
+      the = DACOS( one - two * the )! Polar angle of \hat{u}_k vector
+      phs = two_pi * phs ! Phases of \hat{u}_k components
 
       r_x = nrm_fac * DSIN( the ) * DCOS( phi ) * DCMPLX( DCOS( phs( 1 ) ), DSIN( phs( 1 ) ) )
       r_y = nrm_fac * DSIN( the ) * DSIN( phi ) * DCMPLX( DCOS( phs( 2 ) ), DSIN( phs( 2 ) ) )
@@ -364,7 +383,8 @@ MODULE system_basicfunctions
     j_y = F_ky_ind( ct )
     j_z = F_kz_ind( ct )
 
-    fac = 0.98D0
+    ! fac = 0.98D0
+    fac = 0.5D0
     F_x( j_x, j_y, j_z ) = fac * F_x( j_x, j_y, j_z )
     F_y( j_x, j_y, j_z ) = fac * F_y( j_x, j_y, j_z )
     F_z( j_x, j_y, j_z ) = fac * F_z( j_x, j_y, j_z )
@@ -440,7 +460,7 @@ MODULE system_basicfunctions
 
     CALL check_inc
     CALL check_nan
-    CALL check_cfl
+    ! CALL check_cfl
 
   END
 
@@ -544,7 +564,7 @@ MODULE system_basicfunctions
 
       nan_err   = 1
 
-      deb_err = 1
+      deb_err   = 1
       ! This will jump out of evolution loop, if caught during that.
 
       CALL print_error_nan

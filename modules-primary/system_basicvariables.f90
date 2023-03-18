@@ -67,20 +67,20 @@ MODULE system_basicvariables
   DOUBLE PRECISION ::u_kol,u_int
   DOUBLE PRECISION ::vis,vis_min
   DOUBLE PRECISION ::res_pow
-  DOUBLE PRECISION ::frc_fac,nrm_fac
+  DOUBLE PRECISION ::frc_fac,frc_fac_avg,nrm_fac
   DOUBLE PRECISION ::eng_0,eng,eng_frc,eng_mod,eng_pre
   DOUBLE PRECISION ::dis_ref,dis,dis_fix,dis_eng
   DOUBLE PRECISION ::hel,ens,inc
   ! _______________________________
   ! CHAOS PARAMETERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  DOUBLE PRECISION ::dec,dec_ini,dec_fin
+  DOUBLE PRECISION ::dec,dec_ini,dec_fin,dec_pre
   DOUBLE PRECISION ::lyp_dec,lyp_dec_str,lyp_dec_vis,lyp_dec_cal
   DOUBLE PRECISION ::eng_b
   ! _________________________
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER( LEN = 5)  :: res_char
+  CHARACTER( LEN = 6)  :: res_char
   CHARACTER( LEN = 20) :: icn_type
   CHARACTER( LEN = 1 ) :: run_code
   CHARACTER( LEN = 1 ) :: tst_code
@@ -136,6 +136,7 @@ MODULE system_basicvariables
   ! No of modes for each |k|
   DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::Eng_k,Eng_k_avg
   ! E(k) shell averaged
+  DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE     ::frc_fac_his
 
   !TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 
